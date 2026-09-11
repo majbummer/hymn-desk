@@ -12,7 +12,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 RUN apt-get update && apt-get install -y curl
-RUN curl -L -o /app/lutheran_music_planner.db "https://fourwahls-my.sharepoint.com/:u:/p/matt/IQDgQchB99YzQLi9A9J1scadAVOHq4R-H32IVOsQ4Wfd_-8?e=TqCfkv"
+RUN curl -L -o /app/lutheran_music_planner.db "https://github.com/majbummer/hymn-desk/releases/download/1.0/lutheran_music_planner.db"
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENTRYPOINT ["dotnet", "LutheranMusicLibrary.Web.dll"]
