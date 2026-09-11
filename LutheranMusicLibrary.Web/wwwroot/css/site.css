@@ -91,6 +91,60 @@ p { margin-bottom: 1rem; max-width: 68ch; }
 }
 .site-nav a:hover { color: var(--oxblood); }
 
+.nav-dropdown { position: relative; }
+
+.nav-dropdown summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: 'Lora', serif;
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s;
+}
+.nav-dropdown summary::-webkit-details-marker { display: none; }
+.nav-dropdown summary::after {
+  content: "▾";
+  font-size: 11px;
+  color: var(--gold);
+  transition: transform 0.15s;
+}
+.nav-dropdown[open] summary::after { transform: rotate(180deg); }
+.nav-dropdown summary:hover { color: var(--oxblood); }
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 0;
+  min-width: 180px;
+  background: var(--parchment);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--oxblood);
+  box-shadow: 0 6px 16px rgba(43, 36, 32, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  z-index: 200;
+}
+
+.nav-dropdown-menu a {
+  color: var(--ink-soft);
+  font-family: 'Lora', serif;
+  font-size: 14px;
+  padding: 9px 18px;
+  border-bottom: none;
+}
+.nav-dropdown-menu a:hover {
+  color: var(--oxblood-dark);
+  background: var(--parchment-panel);
+  text-decoration: none;
+}
+
+/* click-outside-to-close is handled natively by <details>; this just
+   closes the menu if another nav-dropdown is opened */
+
 .header-search {
   margin-left: auto;
   display: flex;
