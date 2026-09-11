@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Lutheran Music Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="/" class="wordmark">Lutheran Music Library</a>
+        <nav class="site-nav">
+            <a href="/hymns">Hymn Texts</a>
+            <a href="/tunes">Hymn Tunes</a>
+            <a href="/people">People</a>
+        </nav>
+        <form action="/hymns" method="get" class="header-search">
+            <input type="search" name="q" placeholder="Search hymns, tunes, people…" />
+            <button type="submit">Search</button>
+        </form>
+    </div>
+</header>
+
+<main class="site-main">
+    @RenderBody()
+</main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>Lutheran Music Library — a personal sacred music reference database.</p>
+        <p class="footer-note">All hymn texts and tunes are public domain unless otherwise noted. PHH notes paraphrased from <em>Psalter Hymnal Handbook</em>.</p>
+    </div>
+</footer>
+
+</body>
+</html>

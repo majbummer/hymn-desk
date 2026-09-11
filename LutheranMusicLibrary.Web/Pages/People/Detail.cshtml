@@ -1,0 +1,64 @@
+@page "/people/{slug}"
+@model LutheranMusicLibrary.Web.Pages.People.DetailModel
+@{
+    ViewData["Title"] = Model.Person?.Name ?? "Not Found";
+    var p = Model.Person;
+    if (p == null) { <p>Person not found.</p> return; }
+}
+
+<div class="wiki-layout">
+<article class="wiki-article">
+    <div class="entry-header">
+        <div class="breadcrumb"><a href="/people">People</a> /</div>
+        <h1 class="entry-title">@p.Name</h1>
+        @if (!string.IsNullOrEmpty(p.Dates))
+        {
+            <p class="entry-original">@p.Dates@(!string.IsNullOrEmpty(p.Country) ? " · " + p.Country : "")</p>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(p.Biography))
+    {
+        <p class="entry-lede">@p.Biography</p>
+    }
+
+    @if (p.TextsAuthored.Count > 0)
+    {
+        <h2>Hymn Texts (@p.TextsAuthored.Count)</h2>
+        <ul class="hymnal-list">
+            @foreach (var text in p.TextsAuthored)
+            {
+                <li>
+                    <a href="/hymns/@text.Slug" class="xref">@text.Title</a>
+                    @if (text.Year > 0) { <span class="meta-year"> (@text.Year)</span> }
+                    @if (!string.IsNullOrEmpty(text.Meter)) { <span class="meta-meter"> · @text.Meter</span> }
+                </li>
+            }
+        </ul>
+    }
+</article>
+
+<aside class="wiki-infobox">
+    <div class="infobox-header">@p.Name</div>
+    @if (!string.IsNullOrEmpty(p.Dates))
+    {
+        <div class="infobox-row"><span class="ib-label">Dates</span><span class="ib-value">@p.Dates</span></div>
+    }
+    @if (!string.IsNullOrEmpty(p.BirthPlace))
+    {
+        <div class="infobox-row"><span class="ib-label">Born</span><span class="ib-value">@p.BirthPlace</span></div>
+    }
+    @if (!string.IsNullOrEmpty(p.DeathPlace))
+    {
+        <div class="infobox-row"><span class="ib-label">Died</span><span class="ib-value">@p.DeathPlace</span></div>
+    }
+    @if (!string.IsNullOrEmpty(p.Country))
+    {
+        <div class="infobox-row"><span class="ib-label">Country</span><span class="ib-value">@p.Country</span></div>
+    }
+    <div class="infobox-row">
+        <span class="ib-label">Works</span>
+        <span class="ib-value">@p.TextsAuthored.Count hymn text(s)</span>
+    </div>
+</aside>
+</div>

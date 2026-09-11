@@ -1,0 +1,33 @@
+@page "/people"
+@model LutheranMusicLibrary.Web.Pages.People.IndexModel
+@{ ViewData["Title"] = "People"; }
+
+<div class="page-header">
+    <h1>People</h1>
+    <p class="page-subtitle">@Model.People.Count.ToString("N0") authors, composers, and translators</p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <input type="search" name="q" value="@Model.Query" placeholder="Search names, countries…" class="filter-input" />
+        <button type="submit" class="filter-btn">Search</button>
+        @if (!string.IsNullOrEmpty(Model.Query)) { <a href="/people" class="filter-clear">Clear</a> }
+    </form>
+</div>
+
+<table class="catalog-table">
+    <thead>
+        <tr><th>Name</th><th>Dates</th><th>Country</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model.People)
+        {
+            <tr>
+                <td><a href="/people/@p.Slug" class="xref">@p.Name</a></td>
+                <td>@p.Dates</td>
+                <td>@p.Country</td>
+                <td>@(p.HasBio ? "✦" : "")</td>
+            </tr>
+        }
+    </tbody>
+</table>

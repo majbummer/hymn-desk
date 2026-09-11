@@ -1,0 +1,65 @@
+@page "/hymns"
+@model LutheranMusicLibrary.Web.Pages.Hymns.IndexModel
+@{
+    ViewData["Title"] = "Hymn Texts";
+}
+
+<div class="page-header">
+    <h1>Hymn Texts</h1>
+    <p class="page-subtitle">@Model.Hymns.Count.ToString("N0") entries · Browse the complete catalog of Lutheran hymn texts</p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <input type="search" name="q" value="@Model.Query" placeholder="Search titles, authors, first lines…" class="filter-input" />
+        <select name="season" class="filter-select">
+            <option value="">All Seasons</option>
+            <option value="Advent" selected="@(Model.Season=="Advent")">Advent</option>
+            <option value="Christmas" selected="@(Model.Season=="Christmas")">Christmas</option>
+            <option value="Epiphany" selected="@(Model.Season=="Epiphany")">Epiphany</option>
+            <option value="Lent" selected="@(Model.Season=="Lent")">Lent</option>
+            <option value="Easter" selected="@(Model.Season=="Easter")">Easter</option>
+            <option value="Pentecost" selected="@(Model.Season=="Pentecost")">Pentecost</option>
+            <option value="Reformation" selected="@(Model.Season=="Reformation")">Reformation</option>
+        </select>
+        <button type="submit" class="filter-btn">Filter</button>
+        @if (!string.IsNullOrEmpty(Model.Query) || !string.IsNullOrEmpty(Model.Season))
+        {
+            <a href="/hymns" class="filter-clear">Clear</a>
+        }
+    </form>
+</div>
+
+<div class="catalog-grid">
+    @foreach (var hymn in Model.Hymns)
+    {
+        <a href="/hymns/@hymn.Slug" class="catalog-card">
+            <div class="card-title">@hymn.Title</div>
+            @if (!string.IsNullOrEmpty(hymn.FirstLine))
+            {
+                <div class="card-subtitle">@hymn.FirstLine</div>
+            }
+            }
+            <div class="card-meta">
+                @if (!string.IsNullOrEmpty(hymn.Author))
+                {
+                    <span>@hymn.Author</span>
+                }
+                @if (hymn.Year > 0)
+                {
+                    <span class="meta-sep">·</span>
+                    <span>@hymn.Year</span>
+                }
+                @if (!string.IsNullOrEmpty(hymn.Meter))
+                {
+                    <span class="meta-sep">·</span>
+                    <span class="meta-meter">@hymn.Meter</span>
+                }
+            </div>
+            @if (!string.IsNullOrEmpty(hymn.HymnalRefs))
+            {
+                <div class="card-hymnals">@hymn.HymnalRefs</div>
+            }
+        </a>
+    }
+</div>

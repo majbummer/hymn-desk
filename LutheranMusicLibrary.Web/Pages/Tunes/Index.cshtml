@@ -1,0 +1,35 @@
+@page "/tunes"
+@model LutheranMusicLibrary.Web.Pages.Tunes.IndexModel
+@{ ViewData["Title"] = "Hymn Tunes"; }
+
+<div class="page-header">
+    <h1>Hymn Tunes</h1>
+    <p class="page-subtitle">@Model.Tunes.Count.ToString("N0") tunes in the catalog</p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <input type="search" name="q" value="@Model.Query" placeholder="Search tune names, meters, origins…" class="filter-input" />
+        <button type="submit" class="filter-btn">Search</button>
+        @if (!string.IsNullOrEmpty(Model.Query)) { <a href="/tunes" class="filter-clear">Clear</a> }
+    </form>
+</div>
+
+<table class="catalog-table">
+    <thead>
+        <tr><th>Tune Name</th><th>Meter</th><th>Key</th><th>Origin</th><th>Tradition</th><th>Texts</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model.Tunes)
+        {
+            <tr>
+                <td><a href="/tunes/@t.Slug" class="xref">@t.TuneName</a></td>
+                <td class="td-meter">@t.Meter</td>
+                <td>@t.StandardKey</td>
+                <td>@t.Origin</td>
+                <td>@t.Tradition</td>
+                <td class="td-count">@(t.TextCount > 0 ? t.TextCount.ToString() : "")</td>
+            </tr>
+        }
+    </tbody>
+</table>

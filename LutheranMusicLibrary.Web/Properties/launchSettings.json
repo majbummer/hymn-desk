@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "LutheranMusicLibrary.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:65266;http://localhost:65267"
+    }
+  }
+}

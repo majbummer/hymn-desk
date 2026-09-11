@@ -1,0 +1,30 @@
+@page "/"
+@model LutheranMusicLibrary.Web.Pages.IndexModel
+@{ ViewData["Title"] = "Lutheran Music Library"; Layout = "_Layout"; }
+
+<div style="text-align:center; padding: 80px 32px 60px;">
+    <h1 style="font-size:56px; margin-bottom:12px;">Lutheran Music Library</h1>
+    <p style="font-size:19px; color:var(--ink-soft); font-style:italic; margin-bottom:48px;">
+        A comprehensive reference for Lutheran hymn texts, tunes, and sacred music
+    </p>
+
+    <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin-bottom:56px;">
+        <a href="/hymns" style="display:block; background:var(--oxblood-dark); color:var(--parchment); padding:18px 36px; font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; border:none; font-style:normal;">
+            @Model.Stats.TextCount.ToString("N0") Hymn Texts →
+        </a>
+        <a href="/tunes" style="display:block; background:var(--parchment-panel); color:var(--oxblood-dark); padding:18px 36px; font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; border:1px solid var(--rule); font-style:normal;">
+            @Model.Stats.TuneCount.ToString("N0") Hymn Tunes →
+        </a>
+        <a href="/people" style="display:block; background:var(--parchment-panel); color:var(--oxblood-dark); padding:18px 36px; font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; border:1px solid var(--rule); font-style:normal;">
+            @Model.Stats.PeopleCount.ToString("N0") People →
+        </a>
+    </div>
+
+    <div style="max-width:600px; margin:0 auto; border-top:1px solid var(--rule); padding-top:32px;">
+        <p style="color:var(--ink-muted); font-size:14.5px; font-style:italic;">
+            Cross-referenced scripture connections · Lectionary hymn suggestions ·
+            Liturgical seasons · PHH reference notes · Bach cantata index ·
+            @Model.Stats.ScriptureRefCount.ToString("N0") scripture references
+        </p>
+    </div>
+</div>

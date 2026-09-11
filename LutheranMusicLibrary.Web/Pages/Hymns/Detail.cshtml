@@ -1,0 +1,178 @@
+@page "/hymns/{slug}"
+@model LutheranMusicLibrary.Web.Pages.Hymns.DetailModel
+@{
+    ViewData["Title"] = Model.Hymn?.Title ?? "Not Found";
+    var h = Model.Hymn;
+    if (h == null) { <p>Hymn not found.</p> return; }
+}
+
+<div class="wiki-layout">
+<article class="wiki-article">
+
+    <div class="entry-header">
+        <div class="breadcrumb"><a href="/hymns">Hymn Texts</a> /</div>
+        <h1 class="entry-title">@h.Title</h1>
+        @if (!string.IsNullOrEmpty(h.OriginalTitle))
+        {
+            <p class="entry-original">@h.OriginalTitle</p>
+        }
+        @if (!string.IsNullOrEmpty(h.FirstLine) && h.FirstLine != h.Title)
+        {
+            <p class="entry-firstline">@h.FirstLine</p>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(h.TheologicalAnalysis))
+    {
+        <p class="entry-lede">@h.TheologicalAnalysis</p>
+    }
+
+    @if (!string.IsNullOrEmpty(h.TextHistory))
+    {
+        <h2>History &amp; Background</h2>
+        <p>@h.TextHistory</p>
+    }
+
+    @foreach (var note in h.ReferenceNotes.Where(n => n.NoteType == "text_history"))
+    {
+        <p>@note.Content</p>
+    }
+
+    @if (h.HymnalNumbers.Count > 0)
+    {
+        <h2>Hymnal Appearances</h2>
+        <ul class="hymnal-list">
+            @foreach (var hn in h.HymnalNumbers)
+            {
+                <li><strong>@hn.Name</strong> — @hn.Number</li>
+            }
+        </ul>
+    }
+
+    @if (!string.IsNullOrEmpty(h.Translator))
+    {
+        <h2>Translation</h2>
+        <p><a href="/people/@h.AuthorSlug" class="xref">@h.Translator</a></p>
+    }
+
+    @foreach (var note in h.ReferenceNotes.Where(n => n.NoteType == "liturgical_use"))
+    {
+        <h2>Liturgical Use</h2>
+        <p>@note.Content</p>
+    }
+
+    @if (h.BachCantatas.Count > 0)
+    {
+        <h2>Bach Cantatas</h2>
+        <ul class="plain-list">
+            @foreach (var bc in h.BachCantatas)
+            {
+                <li>@bc</li>
+            }
+        </ul>
+    }
+
+    @if (!string.IsNullOrEmpty(h.BulletinNote))
+    {
+        <h2>Bulletin Note</h2>
+        <p class="bulletin-note">@h.BulletinNote</p>
+    }
+
+    @if (!string.IsNullOrEmpty(h.PreachingHook))
+    {
+        <h2>Preaching Connection</h2>
+        <p>@h.PreachingHook</p>
+    }
+
+</article>
+
+<aside class="wiki-infobox">
+    <div class="infobox-header">@h.Title</div>
+
+    @if (!string.IsNullOrEmpty(h.Author))
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Author</span>
+            <span class="ib-value"><a href="/people/@h.AuthorSlug" class="xref">@h.Author</a>@(!string.IsNullOrEmpty(h.AuthorDates) ? $" ({h.AuthorDates})" : "")</span>
+        </div>
+    }
+
+    @foreach (var tune in h.Tunes)
+    {
+        <div class="infobox-row">
+            <span class="ib-label">@(tune.IsPrimary ? "Tune" : "Alt. Tune")</span>
+            <span class="ib-value"><a href="/tunes/@tune.Slug" class="xref">@tune.TuneName</a></span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(h.Meter))
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Meter</span>
+            <span class="ib-value">@h.Meter</span>
+        </div>
+    }
+
+    @if (h.Year > 0)
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Written</span>
+            <span class="ib-value">@h.Year</span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(h.Language))
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Language</span>
+            <span class="ib-value">@h.Language</span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(h.Origin))
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Origin</span>
+            <span class="ib-value">@h.Origin</span>
+        </div>
+    }
+
+    @if (h.ScriptureRefs.Count > 0)
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Scripture</span>
+            <span class="ib-value">@string.Join("; ", h.ScriptureRefs.Take(3))</span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(h.LawGospel))
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Law/Gospel</span>
+            <span class="ib-value">@h.LawGospel</span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(h.CcliNumber))
+    {
+        <div class="infobox-row">
+            <span class="ib-label">CCLI</span>
+            <span class="ib-value">@h.CcliNumber</span>
+        </div>
+    }
+
+    @if (h.Seasons.Count > 0)
+    {
+        <div class="infobox-row">
+            <span class="ib-label">Seasons</span>
+            <span class="ib-value">@string.Join(", ", h.Seasons.Distinct().Take(4))</span>
+        </div>
+    }
+
+    <div class="infobox-row">
+        <span class="ib-label">Status</span>
+        <span class="ib-value"><span class="badge badge-pd">Public Domain</span></span>
+    </div>
+</aside>
+
+</div>

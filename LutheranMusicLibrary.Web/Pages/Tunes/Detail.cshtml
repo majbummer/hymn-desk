@@ -1,0 +1,79 @@
+@page "/tunes/{slug}"
+@model LutheranMusicLibrary.Web.Pages.Tunes.DetailModel
+@{
+    ViewData["Title"] = Model.Tune?.TuneName ?? "Not Found";
+    var t = Model.Tune;
+    if (t == null) { <p>Tune not found.</p> return; }
+}
+
+<div class="wiki-layout">
+<article class="wiki-article">
+    <div class="entry-header">
+        <div class="breadcrumb"><a href="/tunes">Hymn Tunes</a> /</div>
+        <h1 class="entry-title">@t.TuneName</h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(t.Notes))
+    {
+        <p class="entry-lede">@t.Notes</p>
+    }
+
+    @if (t.LinkedTexts.Count > 0)
+    {
+        <h2>Associated Hymn Texts (@t.LinkedTexts.Count)</h2>
+        <ul class="hymnal-list">
+            @foreach (var text in t.LinkedTexts)
+            {
+                <li>
+                    <a href="/hymns/@text.Slug" class="xref">@text.Title</a>
+                    @if (!string.IsNullOrEmpty(text.Author))
+                    { <span class="meta-author"> — @text.Author</span> }
+                    @if (text.Year > 0)
+                    { <span class="meta-year"> (@text.Year)</span> }
+                </li>
+            }
+        </ul>
+    }
+
+    @if (t.BachCantatas.Count > 0)
+    {
+        <h2>Bach Cantatas Using This Tune</h2>
+        @foreach (var bc in t.BachCantatas)
+        {
+            <div class="bach-entry">
+                <div class="bach-title">@bc.Bwv — @bc.TitleEnglish @(bc.YearComposed > 0 ? $"({bc.YearComposed})" : "")</div>
+                @if (!string.IsNullOrEmpty(bc.Scoring)) { <div class="bach-meta">@bc.Scoring</div> }
+                @if (!string.IsNullOrEmpty(bc.Notes)) { <p class="bach-notes">@bc.Notes</p> }
+            </div>
+        }
+    }
+</article>
+
+<aside class="wiki-infobox">
+    <div class="infobox-header">@t.TuneName</div>
+    @if (!string.IsNullOrEmpty(t.Meter))
+    {
+        <div class="infobox-row"><span class="ib-label">Meter</span><span class="ib-value">@t.Meter</span></div>
+    }
+    @if (!string.IsNullOrEmpty(t.StandardKey))
+    {
+        <div class="infobox-row"><span class="ib-label">Key</span><span class="ib-value">@t.StandardKey</span></div>
+    }
+    @if (!string.IsNullOrEmpty(t.AltKey))
+    {
+        <div class="infobox-row"><span class="ib-label">Alt. Key</span><span class="ib-value">@t.AltKey</span></div>
+    }
+    @if (!string.IsNullOrEmpty(t.Origin))
+    {
+        <div class="infobox-row"><span class="ib-label">Origin</span><span class="ib-value">@t.Origin</span></div>
+    }
+    @if (!string.IsNullOrEmpty(t.Tradition))
+    {
+        <div class="infobox-row"><span class="ib-label">Tradition</span><span class="ib-value">@t.Tradition</span></div>
+    }
+    <div class="infobox-row">
+        <span class="ib-label">Texts</span>
+        <span class="ib-value">@t.LinkedTexts.Count associated text(s)</span>
+    </div>
+</aside>
+</div>
