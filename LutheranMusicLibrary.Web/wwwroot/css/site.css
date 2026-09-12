@@ -1086,3 +1086,24 @@ p { margin-bottom: 1rem; max-width: 68ch; }
 }
 
 .timeline-credit { font-size: 11.5px; color: var(--ink-muted); font-style: italic; clear: both; }
+
+/* ── LITURGICAL CALENDAR WHEEL ─────────────────────────────────────────── */
+.wheel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 20px 20px;
+}
+.wheel-year { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--oxblood-dark); }
+
+.wheel-wrap { display: flex; justify-content: center; padding: 0 20px 32px; }
+.wheel-svg { width: 100%; max-width: 520px; height: auto; }
+.wheel-svg a path { transition: opacity 0.15s; cursor: pointer; }
+.wheel-svg a:hover path { opacity: 0.8; }
+.wheel-label { fill: var(--parchment); font-family: 'Lora', serif; font-size: 13px; font-weight: 600; pointer-events: none; }
+.wheel-center-title { fill: var(--oxblood-dark); font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; }
+.wheel-center-sub { fill: var(--ink-muted); font-family: 'Lora', serif; font-size: 12px; font-style: italic; }
+
+/* ── HYMN DETAIL: THEME BADGES ─────────────────────────────────────────── */
+a.badge:hover { border-color: var(--gold); color: var(--oxblood); background: var(--parchment-panel); }

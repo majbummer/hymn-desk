@@ -104,6 +104,17 @@
         <p><em>The narrative or theological arc traced by this tune's stanzas:</em> @Model.StanzaArc</p>
     }
 
+    @if (h.Themes.Count > 0)
+    {
+        <h2>Themes</h2>
+        <p>
+            @for (int i = 0; i < h.Themes.Count; i++)
+            {
+                <a href="/topics/hymns?theme=@Uri.EscapeDataString(h.Themes[i].ToLower())" class="badge" style="text-decoration:none; margin-right:4px; margin-bottom:4px; display:inline-block;">@h.Themes[i]</a>
+            }
+        </p>
+    }
+
     <h2 class="no-print">Look Further</h2>
     <ul class="plain-list no-print">
         <li><a href="https://hymnary.org/search?qu=@Uri.EscapeDataString(h.Title)" target="_blank" rel="noopener">Search Hymnary.org for "@h.Title" ↗</a></li>
@@ -170,7 +181,12 @@
     {
         <div class="infobox-row">
             <span class="ib-label">Scripture</span>
-            <span class="ib-value">@string.Join("; ", h.ScriptureRefs.Take(3))</span>
+            <span class="ib-value">
+                @for (int i = 0; i < h.ScriptureRefs.Count; i++)
+                {
+                    <a href="https://www.biblegateway.com/passage/?search=@Uri.EscapeDataString(h.ScriptureRefs[i].Replace('\u2013', '-').Replace('\u2014', '-'))" target="_blank" rel="noopener" class="xref">@h.ScriptureRefs[i]</a>@(i < h.ScriptureRefs.Count - 1 ? ", " : "")
+                }
+            </span>
         </div>
     }
 

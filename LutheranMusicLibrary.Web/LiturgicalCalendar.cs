@@ -22,6 +22,18 @@ public static class PersonEra
     };
 }
 
+public class WheelSegment
+{
+    public string Season { get; set; } = "";
+    public DateOnly Start { get; set; }
+    public DateOnly End { get; set; }
+    public string ColorHex { get; set; } = "";
+    public string PathData { get; set; } = "";
+    public double LabelX { get; set; }
+    public double LabelY { get; set; }
+    public bool ShowLabel { get; set; }
+}
+
 /// <summary>
 /// Computes the current liturgical season from a calendar date, using the
 /// Meeus/Jones/Butcher algorithm for the Gregorian Easter date. Season names
@@ -74,6 +86,95 @@ public static class LiturgicalCalendar
         if (today < advent1ThisYear) adventStartYear -= 1;
         int offset = ((adventStartYear - 2022) % 3 + 3) % 3;
         return offset switch { 0 => "A", 1 => "B", _ => "C" };
+    }
+
+    /// <summary>
+    /// Walks every day of the given calendar year and groups them into contiguous
+    /// season segments, by reusing GetSeasonName day by day. This naturally handles
+    /// the Christmas wrap-around at the year boundary correctly for a circular wheel.
+    /// </summary>
+    public static List<(string Season, DateOnly Start, DateOnly End)> GetYearWheel(int year)
+    {
+        var result = new List<(string, DateOnly, DateOnly)>();
+        var start = new DateOnly(year, 1, 1);
+        var end = new DateOnly(year, 12, 31);
+        string? currentSeason = null;
+        var segStart = start;
+        for (var d = start; d <= end; d = d.AddDays(1))
+        {
+            var season = GetSeasonName(d);
+            if (currentSeason == null)
+            {
+                currentSeason = season;
+            }
+            else if (season != currentSeason)
+            {
+                result.Add((currentSeason, segStart, d.AddDays(-1)));
+                currentSeason = season;
+                segStart = d;
+            }
+        }
+        result.Add((currentSeason!, segStart, end));
+        return result;
+    }
+
+    /// <summary>Builds the SVG donut-wedge geometry for a full year's liturgical seasons.</summary>
+    public static List<WheelSegment> GetWheelSegments(int year, double cx, double cy, double rOuter, double rInner)
+    {
+        var segments = GetYearWheel(year);
+        var totalDays = (segments.Last().End.DayNumber - segments.First().Start.DayNumber) + 1;
+        var results = new List<WheelSegment>();
+        double cumulativeDays = 0;
+
+        foreach (var (season, start, end) in segments)
+        {
+            var daysInSeg = (end.DayNumber - start.DayNumber) + 1;
+            var startAngle = cumulativeDays / totalDays * 360.0;
+            var endAngle = (cumulativeDays + daysInSeg) / totalDays * 360.0;
+            cumulativeDays += daysInSeg;
+
+            results.Add(new WheelSegment
+            {
+                Season = season,
+                Start = start,
+                End = end,
+                ColorHex = AccentHex(season),
+                PathData = BuildDonutPath(cx, cy, rOuter, rInner, startAngle, endAngle),
+                LabelX = cx + (rOuter + rInner) / 2 * Math.Sin(DegToRad((startAngle + endAngle) / 2)),
+                LabelY = cy - (rOuter + rInner) / 2 * Math.Cos(DegToRad((startAngle + endAngle) / 2)),
+                ShowLabel = daysInSeg >= 14,
+            });
+        }
+        return results;
+    }
+
+    /// <summary>The angle (degrees, 0 = top, clockwise) of a given date within its year, for the "today" marker.</summary>
+    public static double GetDateAngle(DateOnly date)
+    {
+        var start = new DateOnly(date.Year, 1, 1);
+        var end = new DateOnly(date.Year, 12, 31);
+        var totalDays = (end.DayNumber - start.DayNumber) + 1;
+        var dayOffset = date.DayNumber - start.DayNumber;
+        return (double)dayOffset / totalDays * 360.0;
+    }
+
+    private static double DegToRad(double deg) => deg * Math.PI / 180.0;
+
+    private static string BuildDonutPath(double cx, double cy, double rOuter, double rInner, double startDeg, double endDeg)
+    {
+        var largeArc = (endDeg - startDeg) > 180 ? 1 : 0;
+        var (x1o, y1o) = PointOnCircle(cx, cy, rOuter, startDeg);
+        var (x2o, y2o) = PointOnCircle(cx, cy, rOuter, endDeg);
+        var (x1i, y1i) = PointOnCircle(cx, cy, rInner, startDeg);
+        var (x2i, y2i) = PointOnCircle(cx, cy, rInner, endDeg);
+        return $"M {x1o:F2} {y1o:F2} A {rOuter:F2} {rOuter:F2} 0 {largeArc} 1 {x2o:F2} {y2o:F2} " +
+               $"L {x2i:F2} {y2i:F2} A {rInner:F2} {rInner:F2} 0 {largeArc} 0 {x1i:F2} {y1i:F2} Z";
+    }
+
+    private static (double, double) PointOnCircle(double cx, double cy, double r, double deg)
+    {
+        var rad = DegToRad(deg);
+        return (cx + r * Math.Sin(rad), cy - r * Math.Cos(rad));
     }
 
     /// <summary>First Sunday of Advent: the Sunday on or after November 27.</summary>

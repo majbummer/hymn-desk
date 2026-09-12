@@ -1313,6 +1313,56 @@ public class DatabaseService
         return results;
     }
 
+    // ── TOPICAL INDEX ─────────────────────────────────────────────────────────
+
+    public List<ThemeGroup> GetThemeIndex(string query, int limit = 60)
+    {
+        var results = new List<ThemeGroup>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT LOWER(theme) as norm, COUNT(*) as cnt
+            FROM themes
+            WHERE entity_type = 'text' AND ($q = '' OR LOWER(theme) LIKE $q)
+            GROUP BY norm
+            ORDER BY cnt DESC, norm
+            LIMIT $limit";
+        cmd.Parameters.AddWithValue("$q", string.IsNullOrWhiteSpace(query) ? "" : $"%{query.ToLower()}%");
+        cmd.Parameters.AddWithValue("$limit", limit);
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            var norm = r.GetString(0);
+            var display = System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(norm);
+            results.Add(new ThemeGroup { ThemeKey = norm, ThemeLabel = display, Count = r.GetInt32(1) });
+        }
+        return results;
+    }
+
+    public (string Label, List<HymnSummary> Hymns) GetHymnsForTheme(string themeKey)
+    {
+        var hymns = new List<HymnSummary>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT DISTINCT t.id, t.title, t.author, t.year, t.meter, t.first_line
+            FROM themes th
+            JOIN texts t ON th.entity_type = 'text' AND th.entity_id = t.id
+            WHERE LOWER(th.theme) = $key
+            ORDER BY t.title";
+        cmd.Parameters.AddWithValue("$key", themeKey.ToLower());
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            hymns.Add(new HymnSummary
+            {
+                Id = r.GetInt32(0), Title = Safe(r, "title"), Author = Safe(r, "author"),
+                Year = SafeInt(r, "year"), Meter = Safe(r, "meter"), FirstLine = Safe(r, "first_line"),
+                Slug = Slugify(Safe(r, "title")),
+            });
+        var label = System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(themeKey.ToLower());
+        return (label, hymns);
+    }
+
     // ── STATS ─────────────────────────────────────────────────────────────────
 
     public SiteStats GetStats()
@@ -1677,6 +1727,13 @@ public class TimelineEvent
     public string Description { get; set; } = "";
     public string ImageUrl { get; set; } = "";
     public string ImageCredit { get; set; } = "";
+}
+
+public class ThemeGroup
+{
+    public string ThemeKey { get; set; } = "";
+    public string ThemeLabel { get; set; } = "";
+    public int Count { get; set; }
 }
 
 public class SeasonInfo

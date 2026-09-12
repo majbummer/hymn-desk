@@ -1,0 +1,39 @@
+@page "/topics"
+@model LutheranMusicLibrary.Web.Pages.Topics.IndexModel
+@{ ViewData["Title"] = "Topical Index"; }
+
+<div class="page-header">
+    <h1>Topical Index</h1>
+    <p class="page-subtitle">
+        Browse hymns by theological theme — grace, forgiveness, creation, and thousands more.
+        @(string.IsNullOrEmpty(Model.Query) ? "Showing the most common themes; search for anything more specific." : "")
+    </p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <input type="search" name="q" value="@Model.Query" placeholder="Search themes (e.g. grace, creation, repentance)…" class="filter-input" />
+        <button type="submit" class="filter-btn">Search</button>
+        @if (!string.IsNullOrEmpty(Model.Query))
+        {
+            <a href="/topics" class="filter-clear">Clear</a>
+        }
+    </form>
+</div>
+
+@if (Model.Themes.Count == 0)
+{
+    <p class="empty-state">No themes match "@Model.Query".</p>
+}
+else
+{
+    <div class="country-grid">
+        @foreach (var t in Model.Themes)
+        {
+            <a href="/topics/hymns?theme=@Uri.EscapeDataString(t.ThemeKey)" class="country-link">
+                <span class="country-name">@t.ThemeLabel</span>
+                <span class="country-count">@t.Count</span>
+            </a>
+        }
+    </div>
+}

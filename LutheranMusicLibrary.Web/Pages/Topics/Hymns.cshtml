@@ -1,0 +1,25 @@
+@page "/topics/hymns"
+@model LutheranMusicLibrary.Web.Pages.Topics.HymnsModel
+@{ ViewData["Title"] = Model.ThemeLabel; }
+
+<div class="page-header">
+    <h1>@Model.ThemeLabel</h1>
+    <p class="page-subtitle">@Model.HymnList.Count.ToString("N0") hymns · <a href="/topics">← All themes</a></p>
+</div>
+
+<div class="catalog-grid">
+    @foreach (var hymn in Model.HymnList)
+    {
+        <a href="/hymns/@hymn.Slug" class="catalog-card">
+            <div class="card-title">@hymn.Title</div>
+            @if (!string.IsNullOrEmpty(hymn.FirstLine))
+            {
+                <div class="card-subtitle">@hymn.FirstLine</div>
+            }
+            <div class="card-meta">
+                @if (!string.IsNullOrEmpty(hymn.Author)) { <span>@hymn.Author</span> }
+                @if (hymn.Year > 0) { <span class="meta-sep">·</span><span>@hymn.Year</span> }
+            </div>
+        </a>
+    }
+</div>

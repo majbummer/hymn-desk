@@ -1,0 +1,58 @@
+@page "/calendar-wheel"
+@model LutheranMusicLibrary.Web.Pages.CalendarWheel.IndexModel
+@{ ViewData["Title"] = "Liturgical Calendar Wheel"; }
+
+<div class="page-header">
+    <h1>Liturgical Calendar Wheel</h1>
+    <p class="page-subtitle">
+        The church year for @Model.Year, sized by how many days each season actually runs.
+        Click a wedge to browse hymns for that season.
+        @if (Model.ShowTodayMarker)
+        {
+            <text> The gold line marks today — currently @Model.TodaySeasonName.</text>
+        }
+    </p>
+</div>
+
+<div class="wheel-nav">
+    <a href="/calendar-wheel?year=@(Model.Year - 1)" class="xref">← @(Model.Year - 1)</a>
+    <span class="wheel-year">@Model.Year</span>
+    <a href="/calendar-wheel?year=@(Model.Year + 1)" class="xref">@(Model.Year + 1) →</a>
+</div>
+
+<div class="wheel-wrap">
+    <svg viewBox="0 0 520 520" class="wheel-svg" role="img" aria-label="Liturgical calendar wheel for @Model.Year">
+        @foreach (var seg in Model.Segments)
+        {
+            var seasonTag = LiturgicalCalendar.SearchTagsFor(seg.Season)[0];
+            <a href="/hymns?season=@Uri.EscapeDataString(seasonTag)">
+                <path d="@seg.PathData" fill="@seg.ColorHex" stroke="var(--parchment)" stroke-width="1.5">
+                    <title>@seg.Season (@seg.Start.ToString("MMM d") – @seg.End.ToString("MMM d"))</title>
+                </path>
+                @if (seg.ShowLabel)
+                {
+                    <text><tspan x="@seg.LabelX.ToString("F1")" y="@seg.LabelY.ToString("F1")" class="wheel-label" text-anchor="middle" dominant-baseline="middle">@seg.Season</tspan></text>
+                }
+            </a>
+        }
+        @if (Model.ShowTodayMarker)
+        {
+            <line x1="@Model.MarkerX1.ToString("F1")" y1="@Model.MarkerY1.ToString("F1")" x2="@Model.MarkerX2.ToString("F1")" y2="@Model.MarkerY2.ToString("F1")" stroke="var(--gold)" stroke-width="3" />
+        }
+        <circle cx="260" cy="260" r="130" fill="var(--parchment)" stroke="var(--rule)" stroke-width="1" />
+        <text><tspan x="260" y="255" text-anchor="middle" class="wheel-center-title">@Model.Year</tspan></text>
+        <text><tspan x="260" y="278" text-anchor="middle" class="wheel-center-sub">Church Year</tspan></text>
+    </svg>
+</div>
+
+<h2 class="lectionary-hymns-heading">Every season, in order</h2>
+<div class="lectionary-sunday-list">
+    @foreach (var seg in Model.Segments)
+    {
+        var seasonTag = LiturgicalCalendar.SearchTagsFor(seg.Season)[0];
+        <a href="/hymns?season=@Uri.EscapeDataString(seasonTag)" class="lectionary-sunday-link">
+            <span class="lectionary-sunday-name" style="border-left: 4px solid @seg.ColorHex; padding-left: 10px;">@seg.Season</span>
+            <span class="lectionary-sunday-color">@seg.Start.ToString("MMM d") – @seg.End.ToString("MMM d")</span>
+        </a>
+    }
+</div>
