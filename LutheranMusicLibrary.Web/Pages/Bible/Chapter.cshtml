@@ -1,0 +1,92 @@
+@page "/bible/{book}/{chapter:int}"
+@model LutheranMusicLibrary.Web.Pages.Bible.ChapterModel
+@{ ViewData["Title"] = Model.Detail == null ? "Bible Lookup" : $"{Model.Detail.BookName} {Model.Detail.Chapter}"; }
+
+@if (Model.Detail != null)
+{
+    var d = Model.Detail;
+
+    <div class="page-header">
+        <h1>@d.BookName @d.Chapter</h1>
+        <p class="page-subtitle"><a href="/bible">← All books</a></p>
+    </div>
+
+    <div class="bible-chapter-nav">
+        @if (d.Chapter > 1)
+        {
+            <a href="/bible/@d.BookSlug/@(d.Chapter - 1)?t=@d.TranslationCode" class="bible-chapter-prev">← Chapter @(d.Chapter - 1)</a>
+        }
+        <div class="bible-chapter-picker">
+            @for (int c = 1; c <= d.ChapterCount; c++)
+            {
+                <a href="/bible/@d.BookSlug/@c?t=@d.TranslationCode" class="bible-chapter-num @(c == d.Chapter ? "current" : "")">@c</a>
+            }
+        </div>
+        @if (d.Chapter < d.ChapterCount)
+        {
+            <a href="/bible/@d.BookSlug/@(d.Chapter + 1)?t=@d.TranslationCode" class="bible-chapter-next">Chapter @(d.Chapter + 1) →</a>
+        }
+    </div>
+
+    <form method="get" class="bible-translation-form">
+        <label for="translation-select">Translation:</label>
+        <select id="translation-select" name="t" onchange="this.form.submit()">
+            @foreach (var (code, label) in DatabaseService.BibleTranslations)
+            {
+                <option value="@code" selected="@(code == d.TranslationCode)">@label</option>
+            }
+        </select>
+        <noscript><button type="submit" class="filter-btn">Go</button></noscript>
+    </form>
+
+    @if (!string.IsNullOrEmpty(d.ChapterSummary))
+    {
+        <div class="bible-chapter-summary">
+            <p class="bible-summary-label">Lutheran reading notes</p>
+            <p>@d.ChapterSummary</p>
+            <div class="bible-summary-meta">
+                @if (!string.IsNullOrEmpty(d.MajorTheme)) { <span><strong>Theme:</strong> @d.MajorTheme</span> }
+                @if (!string.IsNullOrEmpty(d.KeyPeople)) { <span><strong>Key people:</strong> @d.KeyPeople</span> }
+                @if (!string.IsNullOrEmpty(d.KeyLocation)) { <span><strong>Key place:</strong> @d.KeyLocation</span> }
+                @if (!string.IsNullOrEmpty(d.LiturgicalUse)) { <span><strong>Liturgical use:</strong> @d.LiturgicalUse</span> }
+            </div>
+        </div>
+    }
+
+    <div class="bible-verses">
+        @foreach (var v in d.Verses)
+        {
+            <div class="bible-verse">
+                <span class="bible-verse-num">@v.Verse</span>
+                <span class="bible-verse-text">@v.Text</span>
+                @if (!string.IsNullOrEmpty(v.LutheranShort))
+                {
+                    <div class="bible-verse-note">@v.LutheranShort</div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (d.RelatedHymns.Count > 0)
+    {
+        <div class="bible-related-hymns">
+            <h2>Hymns connected to this chapter</h2>
+            <div class="catalog-grid">
+                @foreach (var hymn in d.RelatedHymns)
+                {
+                    <a href="/hymns/@hymn.Slug" class="catalog-card">
+                        <div class="card-title">@hymn.Title</div>
+                        @if (!string.IsNullOrEmpty(hymn.FirstLine))
+                        {
+                            <div class="card-subtitle">@hymn.FirstLine</div>
+                        }
+                        <div class="card-meta">
+                            @if (!string.IsNullOrEmpty(hymn.Author)) { <span>@hymn.Author</span> }
+                            @if (hymn.Year > 0) { <span class="meta-sep">·</span><span>@hymn.Year</span> }
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+}

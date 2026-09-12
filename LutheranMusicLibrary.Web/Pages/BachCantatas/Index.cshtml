@@ -1,0 +1,68 @@
+@page "/bach-cantatas"
+@model LutheranMusicLibrary.Web.Pages.BachCantatas.IndexModel
+@{ ViewData["Title"] = "Bach Cantatas"; }
+
+<div class="page-header">
+    <h1>Bach Cantatas</h1>
+    <p class="page-subtitle">
+        @Model.Cantatas.Count.ToString("N0") cantatas · Bach's church cantatas, grouped by the Sunday or feast
+        they were composed for, with their chorale tunes and lectionary connections.
+    </p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <input type="search" name="q" value="@Model.Query" placeholder="Search title, occasion, chorale tune…" class="filter-input" />
+        <button type="submit" class="filter-btn">Filter</button>
+        @if (!string.IsNullOrEmpty(Model.Query))
+        {
+            <a href="/bach-cantatas" class="filter-clear">Clear</a>
+        }
+    </form>
+</div>
+
+@foreach (var occasion in Model.Cantatas.Select(c => string.IsNullOrEmpty(c.SundayOccasion) ? "Occasion unknown" : c.SundayOccasion).Distinct())
+{
+    <h2 class="cantata-occasion">@occasion</h2>
+    <div class="cantata-list">
+        @foreach (var c in Model.Cantatas.Where(x => (string.IsNullOrEmpty(x.SundayOccasion) ? "Occasion unknown" : x.SundayOccasion) == occasion))
+        {
+            <div class="cantata-card">
+                <div class="cantata-head">
+                    <span class="cantata-bwv">@c.Bwv</span>
+                    <span class="cantata-title">@c.Title</span>
+                    @if (!string.IsNullOrEmpty(c.TitleEnglish))
+                    {
+                        <span class="cantata-title-en">"@c.TitleEnglish"</span>
+                    }
+                </div>
+                <div class="cantata-meta">
+                    @if (c.YearComposed > 0) { <span>@c.YearComposed</span> }
+                    @if (!string.IsNullOrEmpty(c.Scoring)) { <span class="meta-sep">·</span><span>@c.Scoring</span> }
+                </div>
+                @if (!string.IsNullOrEmpty(c.ChoraleTune))
+                {
+                    <div class="cantata-chorale">
+                        Chorale tune:
+                        @if (!string.IsNullOrEmpty(c.TuneSlug))
+                        {
+                            <a href="/tunes/@c.TuneSlug" class="xref">@c.ChoraleTune</a>
+                        }
+                        else
+                        {
+                            <text>@c.ChoraleTune</text>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(c.LectionaryConnection))
+                {
+                    <div class="cantata-lectionary">Readings: @c.LectionaryConnection</div>
+                }
+                @if (!string.IsNullOrEmpty(c.Notes))
+                {
+                    <div class="cantata-notes">@c.Notes</div>
+                }
+            </div>
+        }
+    </div>
+}

@@ -294,6 +294,396 @@ public class DatabaseService
         return d;
     }
 
+    // ── HOMEPAGE / LITURGICAL SEASON ─────────────────────────────────────────────
+
+    public SeasonInfo? GetSeasonInfo(string seasonName)
+    {
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT name, color, character, description FROM church_year_seasons WHERE name = $name LIMIT 1";
+        cmd.Parameters.AddWithValue("$name", seasonName);
+        using var r = cmd.ExecuteReader();
+        if (!r.Read()) return null;
+        return new SeasonInfo
+        {
+            Name = Safe(r, "name"),
+            Color = Safe(r, "color"),
+            Character = Safe(r, "character"),
+            Description = Safe(r, "description"),
+        };
+    }
+
+    /// <summary>
+    /// Picks one hymn text tagged for the given season, stable for a given seed
+    /// (e.g. day-of-year) so the featured hymn changes daily but not on every
+    /// page load. Tries each tag in order and falls back to any hymn if a
+    /// season has no tagged texts yet.
+    /// </summary>
+    public HymnSummary? GetFeaturedHymnForSeason(string[] searchTags, int seed)
+    {
+        using var conn = GetConnection();
+
+        foreach (var tag in searchTags)
+        {
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT t.id, t.title, t.author, t.year, t.meter, t.first_line
+                FROM texts t
+                JOIN seasons s ON s.entity_type = 'text' AND s.entity_id = t.id
+                WHERE s.season = $tag
+                ORDER BY t.id";
+            cmd.Parameters.AddWithValue("$tag", tag);
+            using var r = cmd.ExecuteReader();
+            var ids = new List<(int Id, string Title, string Author, int Year, string Meter, string FirstLine)>();
+            while (r.Read())
+                ids.Add((r.GetInt32(0), Safe(r, "title"), Safe(r, "author"), SafeInt(r, "year"), Safe(r, "meter"), Safe(r, "first_line")));
+            if (ids.Count == 0) continue;
+
+            var pick = ids[((seed % ids.Count) + ids.Count) % ids.Count];
+            return new HymnSummary
+            {
+                Id = pick.Id, Title = pick.Title, Author = pick.Author,
+                Year = pick.Year, Meter = pick.Meter, FirstLine = pick.FirstLine,
+                Slug = Slugify(pick.Title),
+            };
+        }
+        return null;
+    }
+
+    // ── METER INDEX ───────────────────────────────────────────────────────────
+
+    public List<MeterGroup> GetMeterIndex()
+    {
+        var groups = new Dictionary<string, MeterGroup>();
+        using var conn = GetConnection();
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"SELECT meter, COUNT(*) as cnt FROM texts
+                             WHERE meter IS NOT NULL AND meter != ''
+                             GROUP BY meter";
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            var meter = r.GetString(0);
+            groups[meter] = new MeterGroup { Meter = meter, HymnCount = r.GetInt32(1) };
+        }
+
+        var tn = conn.CreateCommand();
+        tn.CommandText = "SELECT meter, tune_name FROM tunes WHERE meter IS NOT NULL AND meter != '' ORDER BY tune_name";
+        using var tr = tn.ExecuteReader();
+        while (tr.Read())
+        {
+            var meter = tr.GetString(0);
+            var tuneName = tr.GetString(1);
+            if (!groups.ContainsKey(meter)) groups[meter] = new MeterGroup { Meter = meter };
+            groups[meter].Tunes.Add(new TuneStub { TuneName = tuneName, Slug = Slugify(tuneName) });
+        }
+
+        return groups.Values.OrderByDescending(g => g.HymnCount).ThenBy(g => g.Meter).ToList();
+    }
+
+    // ── FIRST LINE INDEX ─────────────────────────────────────────────────────
+
+    public List<HymnSummary> GetFirstLineIndex(string query = "")
+    {
+        var results = new List<HymnSummary>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"SELECT id, title, author, year, meter, first_line FROM texts
+                             WHERE first_line IS NOT NULL AND first_line != ''
+                             AND ($q = '' OR first_line LIKE $q OR title LIKE $q)
+                             ORDER BY first_line COLLATE NOCASE";
+        cmd.Parameters.AddWithValue("$q", string.IsNullOrWhiteSpace(query) ? "" : $"%{query}%");
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            results.Add(new HymnSummary
+            {
+                Id = r.GetInt32(0), Title = Safe(r, "title"), Author = Safe(r, "author"),
+                Year = SafeInt(r, "year"), Meter = Safe(r, "meter"), FirstLine = Safe(r, "first_line"),
+                Slug = Slugify(Safe(r, "title")),
+            });
+        return results;
+    }
+
+    // ── GLOSSARY ──────────────────────────────────────────────────────────────
+
+    public List<GlossaryEntry> GetGlossary()
+    {
+        var results = new List<GlossaryEntry>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT term, category, definition, related_terms, lutheran_context FROM glossary ORDER BY category, term";
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            results.Add(new GlossaryEntry
+            {
+                Term = Safe(r, "term"), Category = Safe(r, "category"), Definition = Safe(r, "definition"),
+                RelatedTerms = Safe(r, "related_terms"), LutheranContext = Safe(r, "lutheran_context"),
+            });
+        return results;
+    }
+
+    // ── BACH CANTATAS ─────────────────────────────────────────────────────────
+
+    public List<BachEntry> GetBachCantatas(string query = "")
+    {
+        var results = new List<BachEntry>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT bc.bwv, bc.title, bc.title_english, bc.sunday_occasion, bc.year_composed,
+                   bc.scoring, bc.chorale_tune, bc.lectionary_connection, bc.notes, tu.tune_name
+            FROM bach_cantatas bc
+            LEFT JOIN tunes tu ON UPPER(tu.tune_name) = UPPER(bc.chorale_tune)
+            WHERE ($q = '' OR bc.title LIKE $q OR bc.title_english LIKE $q OR bc.sunday_occasion LIKE $q OR bc.chorale_tune LIKE $q)
+            GROUP BY bc.id
+            ORDER BY bc.sunday_occasion, bc.bwv";
+        cmd.Parameters.AddWithValue("$q", string.IsNullOrWhiteSpace(query) ? "" : $"%{query}%");
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            var matchedTune = Safe(r, "tune_name");
+            results.Add(new BachEntry
+            {
+                Bwv = Safe(r, "bwv"), Title = Safe(r, "title"), TitleEnglish = Safe(r, "title_english"),
+                SundayOccasion = Safe(r, "sunday_occasion"), YearComposed = SafeInt(r, "year_composed"),
+                Scoring = Safe(r, "scoring"), ChoraleTune = Safe(r, "chorale_tune"),
+                LectionaryConnection = Safe(r, "lectionary_connection"), Notes = Safe(r, "notes"),
+                TuneSlug = string.IsNullOrEmpty(matchedTune) ? "" : Slugify(matchedTune),
+            });
+        }
+        return results;
+    }
+
+    // ── BIBLE LOOKUP ──────────────────────────────────────────────────────────
+
+    public static readonly (string Code, string Label)[] BibleTranslations = new[]
+    {
+        ("kjv", "KJV — King James Version"),
+        ("web", "WEB — World English Bible"),
+        ("bsb", "BSB — Berean Standard Bible"),
+        ("asv", "ASV — American Standard Version"),
+        ("akjv", "AKJV — American King James"),
+        ("cpdv", "CPDV — Catholic Public Domain Version"),
+        ("dbt", "DBT — Darby Translation"),
+        ("drb", "DRB — Douay-Rheims"),
+        ("erv", "ERV — English Revised Version"),
+        ("jps_wey", "JPS/Weymouth"),
+        ("nheb", "NHEB — New Heart English Bible"),
+        ("slt", "SLT — Smith's Literal Translation"),
+        ("wbt", "WBT — Webster Bible Translation"),
+        ("ylt", "YLT — Young's Literal Translation"),
+    };
+
+    public List<BibleBookSummary> GetBibleBooks()
+    {
+        var results = new List<BibleBookSummary>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT book_number, name, abbreviation, testament, chapter_count FROM bible_books ORDER BY book_number";
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            results.Add(new BibleBookSummary
+            {
+                Number = r.GetInt32(0), Name = r.GetString(1), Abbreviation = r.GetString(2),
+                Testament = r.GetString(3), ChapterCount = r.GetInt32(4),
+            });
+        return results;
+    }
+
+    public BibleChapterDetail? GetBibleChapter(string bookSlug, int chapter, string translationCode)
+    {
+        using var conn = GetConnection();
+
+        var bookCmd = conn.CreateCommand();
+        bookCmd.CommandText = "SELECT book_number, name, chapter_count FROM bible_books";
+        using var br = bookCmd.ExecuteReader();
+        int bookNumber = 0; string bookName = ""; int chapterCount = 0;
+        while (br.Read())
+        {
+            if (Slugify(br.GetString(1)) == bookSlug) { bookNumber = br.GetInt32(0); bookName = br.GetString(1); chapterCount = br.GetInt32(2); break; }
+        }
+        br.Close();
+        if (bookNumber == 0) return null;
+        if (chapter < 1) chapter = 1;
+        if (chapter > chapterCount) chapter = chapterCount;
+
+        var validCodes = BibleTranslations.Select(t => t.Code).ToHashSet();
+        if (!validCodes.Contains(translationCode)) translationCode = "kjv";
+        var col = translationCode + "_text";
+
+        var d = new BibleChapterDetail
+        {
+            BookName = bookName, BookSlug = bookSlug, BookNumber = bookNumber, Chapter = chapter, ChapterCount = chapterCount,
+            TranslationCode = translationCode,
+            TranslationLabel = BibleTranslations.First(t => t.Code == translationCode).Label,
+        };
+
+        var vcmd = conn.CreateCommand();
+        vcmd.CommandText = $@"SELECT verse, {col}, lutheran_short FROM bible_verses
+                              WHERE book_number = $bn AND chapter = $ch ORDER BY verse";
+        vcmd.Parameters.AddWithValue("$bn", bookNumber);
+        vcmd.Parameters.AddWithValue("$ch", chapter);
+        using var vr = vcmd.ExecuteReader();
+        while (vr.Read())
+            d.Verses.Add(new BibleVerseText
+            {
+                Verse = vr.GetInt32(0),
+                Text = vr.IsDBNull(1) ? "" : vr.GetString(1),
+                LutheranShort = vr.IsDBNull(2) ? "" : vr.GetString(2),
+            });
+
+        var scmd = conn.CreateCommand();
+        scmd.CommandText = @"SELECT lutheran_summary, major_theme, key_people, key_location, liturgical_use
+                              FROM bible_chapter_summaries WHERE book_number = $bn AND chapter = $ch LIMIT 1";
+        scmd.Parameters.AddWithValue("$bn", bookNumber);
+        scmd.Parameters.AddWithValue("$ch", chapter);
+        using var sr = scmd.ExecuteReader();
+        if (sr.Read())
+        {
+            d.ChapterSummary = Safe(sr, "lutheran_summary");
+            d.MajorTheme = Safe(sr, "major_theme");
+            d.KeyPeople = Safe(sr, "key_people");
+            d.KeyLocation = Safe(sr, "key_location");
+            d.LiturgicalUse = Safe(sr, "liturgical_use");
+        }
+        sr.Close();
+
+        var hcmd = conn.CreateCommand();
+        hcmd.CommandText = @"
+            SELECT DISTINCT t.id, t.title, t.author, t.year, t.meter, t.first_line
+            FROM scripture_refs sr
+            JOIN texts t ON sr.entity_type = 'text' AND sr.entity_id = t.id
+            WHERE sr.reference LIKE $prefixColon OR sr.reference = $exact
+            ORDER BY t.title";
+        hcmd.Parameters.AddWithValue("$prefixColon", $"{bookName} {chapter}:%");
+        hcmd.Parameters.AddWithValue("$exact", $"{bookName} {chapter}");
+        using var hr = hcmd.ExecuteReader();
+        while (hr.Read())
+            d.RelatedHymns.Add(new HymnSummary
+            {
+                Id = hr.GetInt32(0), Title = Safe(hr, "title"), Author = Safe(hr, "author"),
+                Year = SafeInt(hr, "year"), Meter = Safe(hr, "meter"), FirstLine = Safe(hr, "first_line"),
+                Slug = Slugify(Safe(hr, "title")),
+            });
+
+        return d;
+    }
+
+    // ── CONFESSIONS & CATECHISMS ──────────────────────────────────────────────
+
+    public List<ConfessionalDocumentSummary> GetConfessionalDocuments()
+    {
+        var results = new List<ConfessionalDocumentSummary>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT d.id, d.name, d.slug, d.year, d.description, COUNT(s.id) as section_count
+            FROM confessional_documents d
+            LEFT JOIN confessional_sections s ON s.document_id = d.id
+            GROUP BY d.id
+            ORDER BY d.sort_order";
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            results.Add(new ConfessionalDocumentSummary
+            {
+                Id = r.GetInt32(0), Name = Safe(r, "name"), Slug = Safe(r, "slug"),
+                Year = Safe(r, "year"), Description = Safe(r, "description"),
+                SectionCount = r.GetInt32(5),
+            });
+        return results;
+    }
+
+    public ConfessionalDocumentDetail? GetConfessionalDocumentBySlug(string slug)
+    {
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, slug, year, description FROM confessional_documents WHERE slug = $slug";
+        cmd.Parameters.AddWithValue("$slug", slug);
+        using var r = cmd.ExecuteReader();
+        if (!r.Read()) return null;
+        var d = new ConfessionalDocumentDetail
+        {
+            Id = r.GetInt32(0), Name = Safe(r, "name"), Slug = Safe(r, "slug"),
+            Year = Safe(r, "year"), Description = Safe(r, "description"),
+        };
+        r.Close();
+
+        var sc = conn.CreateCommand();
+        sc.CommandText = @"SELECT id, part, number, title FROM confessional_sections
+                            WHERE document_id = $id ORDER BY sort_order";
+        sc.Parameters.AddWithValue("$id", d.Id);
+        using var scr = sc.ExecuteReader();
+        while (scr.Read())
+            d.Sections.Add(new ConfessionalSectionStub
+            {
+                Id = scr.GetInt32(0), Part = Safe(scr, "part"), Number = Safe(scr, "number"), Title = Safe(scr, "title"),
+            });
+        return d;
+    }
+
+    public ConfessionalSectionDetail? GetConfessionalSection(int sectionId)
+    {
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT s.id, s.part, s.number, s.title, s.content, d.id, d.name, d.slug
+            FROM confessional_sections s
+            JOIN confessional_documents d ON s.document_id = d.id
+            WHERE s.id = $id";
+        cmd.Parameters.AddWithValue("$id", sectionId);
+        using var r = cmd.ExecuteReader();
+        if (!r.Read()) return null;
+        var d = new ConfessionalSectionDetail
+        {
+            Id = r.GetInt32(0), Part = Safe(r, "part"), Number = Safe(r, "number"), Title = Safe(r, "title"),
+            Content = Safe(r, "content"), DocumentId = r.GetInt32(5), DocumentName = Safe(r, "name"), DocumentSlug = Safe(r, "slug"),
+        };
+        r.Close();
+
+        var hc = conn.CreateCommand();
+        hc.CommandText = @"
+            SELECT t.id, t.title, t.author, t.year, t.meter, t.first_line
+            FROM hymn_confessional_links hcl
+            JOIN texts t ON hcl.text_id = t.id
+            WHERE hcl.section_id = $id
+            ORDER BY t.title";
+        hc.Parameters.AddWithValue("$id", sectionId);
+        using var hr = hc.ExecuteReader();
+        while (hr.Read())
+            d.RelatedHymns.Add(new HymnSummary
+            {
+                Id = hr.GetInt32(0), Title = Safe(hr, "title"), Author = Safe(hr, "author"),
+                Year = SafeInt(hr, "year"), Meter = Safe(hr, "meter"), FirstLine = Safe(hr, "first_line"),
+                Slug = Slugify(Safe(hr, "title")),
+            });
+        return d;
+    }
+
+    /// <summary>Confessional sections linked to a given hymn text, for display on the hymn detail page.</summary>
+    public List<ConfessionalSectionStub> GetConfessionalSectionsForHymn(int textId)
+    {
+        var results = new List<ConfessionalSectionStub>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT s.id, s.part, s.number, s.title, d.name, d.slug
+            FROM hymn_confessional_links hcl
+            JOIN confessional_sections s ON hcl.section_id = s.id
+            JOIN confessional_documents d ON s.document_id = d.id
+            WHERE hcl.text_id = $id
+            ORDER BY d.sort_order, s.sort_order";
+        cmd.Parameters.AddWithValue("$id", textId);
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            results.Add(new ConfessionalSectionStub
+            {
+                Id = r.GetInt32(0), Part = Safe(r, "part"), Number = Safe(r, "number"), Title = Safe(r, "title"),
+                DocumentName = Safe(r, "name"), DocumentSlug = Safe(r, "slug"),
+            });
+        return results;
+    }
+
     // ── STATS ─────────────────────────────────────────────────────────────────
 
     public SiteStats GetStats()
@@ -408,7 +798,71 @@ public class TuneDetail
     public List<BachEntry> BachCantatas { get; set; } = new();
 }
 
-public class BachEntry { public string Bwv { get; set; } = ""; public string TitleEnglish { get; set; } = ""; public int YearComposed { get; set; } public string Scoring { get; set; } = ""; public string Notes { get; set; } = ""; }
+public class BachEntry
+{
+    public string Bwv { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string TitleEnglish { get; set; } = "";
+    public string SundayOccasion { get; set; } = "";
+    public int YearComposed { get; set; }
+    public string Scoring { get; set; } = "";
+    public string ChoraleTune { get; set; } = "";
+    public string LectionaryConnection { get; set; } = "";
+    public string Notes { get; set; } = "";
+    public string TuneSlug { get; set; } = "";
+}
+
+public class MeterGroup
+{
+    public string Meter { get; set; } = "";
+    public int HymnCount { get; set; }
+    public List<TuneStub> Tunes { get; set; } = new();
+}
+public class TuneStub { public string TuneName { get; set; } = ""; public string Slug { get; set; } = ""; }
+
+public class GlossaryEntry
+{
+    public string Term { get; set; } = "";
+    public string Category { get; set; } = "";
+    public string Definition { get; set; } = "";
+    public string RelatedTerms { get; set; } = "";
+    public string LutheranContext { get; set; } = "";
+}
+
+public class BibleBookSummary
+{
+    public int Number { get; set; }
+    public string Name { get; set; } = "";
+    public string Abbreviation { get; set; } = "";
+    public string Testament { get; set; } = "";
+    public int ChapterCount { get; set; }
+    public string Slug => DatabaseService.Slugify(Name);
+}
+
+public class BibleVerseText
+{
+    public int Verse { get; set; }
+    public string Text { get; set; } = "";
+    public string LutheranShort { get; set; } = "";
+}
+
+public class BibleChapterDetail
+{
+    public string BookName { get; set; } = "";
+    public string BookSlug { get; set; } = "";
+    public int BookNumber { get; set; }
+    public int Chapter { get; set; }
+    public int ChapterCount { get; set; }
+    public string TranslationCode { get; set; } = "";
+    public string TranslationLabel { get; set; } = "";
+    public List<BibleVerseText> Verses { get; set; } = new();
+    public string ChapterSummary { get; set; } = "";
+    public string MajorTheme { get; set; } = "";
+    public string KeyPeople { get; set; } = "";
+    public string KeyLocation { get; set; } = "";
+    public string LiturgicalUse { get; set; } = "";
+    public List<HymnSummary> RelatedHymns { get; set; } = new();
+}
 
 public class PersonSummary
 {
@@ -439,3 +893,54 @@ public class PersonDetail
 }
 
 public class SiteStats { public int TextCount { get; set; } public int TuneCount { get; set; } public int PeopleCount { get; set; } public int HymnalCount { get; set; } public int ScriptureRefCount { get; set; } }
+
+public class ConfessionalDocumentSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Slug { get; set; } = "";
+    public string Year { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int SectionCount { get; set; }
+}
+
+public class ConfessionalDocumentDetail
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Slug { get; set; } = "";
+    public string Year { get; set; } = "";
+    public string Description { get; set; } = "";
+    public List<ConfessionalSectionStub> Sections { get; set; } = new();
+}
+
+public class ConfessionalSectionStub
+{
+    public int Id { get; set; }
+    public string Part { get; set; } = "";
+    public string Number { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string DocumentName { get; set; } = "";
+    public string DocumentSlug { get; set; } = "";
+}
+
+public class ConfessionalSectionDetail
+{
+    public int Id { get; set; }
+    public string Part { get; set; } = "";
+    public string Number { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Content { get; set; } = "";
+    public int DocumentId { get; set; }
+    public string DocumentName { get; set; } = "";
+    public string DocumentSlug { get; set; } = "";
+    public List<HymnSummary> RelatedHymns { get; set; } = new();
+}
+
+public class SeasonInfo
+{
+    public string Name { get; set; } = "";
+    public string Color { get; set; } = "";
+    public string Character { get; set; } = "";
+    public string Description { get; set; } = "";
+}

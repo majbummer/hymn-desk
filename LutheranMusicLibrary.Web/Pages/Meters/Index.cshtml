@@ -1,0 +1,33 @@
+@page "/meters"
+@model LutheranMusicLibrary.Web.Pages.Meters.IndexModel
+@{ ViewData["Title"] = "Meter Index"; }
+
+<div class="page-header">
+    <h1>Meter Index</h1>
+    <p class="page-subtitle">
+        @Model.Meters.Count.ToString("N0") meters · Hymns and tunes grouped by metrical pattern,
+        so you can find an interchangeable tune even when you don't know its name.
+    </p>
+</div>
+
+<div class="meter-list">
+    @foreach (var m in Model.Meters)
+    {
+        <div class="meter-row">
+            <div class="meter-row-head">
+                <a href="/hymns?meter=@Uri.EscapeDataString(m.Meter)" class="meter-notation">@m.Meter</a>
+                <span class="meter-count">@m.HymnCount.ToString("N0") hymn@(m.HymnCount == 1 ? "" : "s") in this meter</span>
+            </div>
+            @if (m.Tunes.Count > 0)
+            {
+                <div class="meter-tunes">
+                    <span class="meter-tunes-label">Tunes:</span>
+                    @for (int i = 0; i < m.Tunes.Count; i++)
+                    {
+                        <a href="/tunes/@m.Tunes[i].Slug" class="xref">@m.Tunes[i].TuneName</a>@(i < m.Tunes.Count - 1 ? ", " : "")
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

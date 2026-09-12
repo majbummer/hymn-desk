@@ -19,7 +19,4 @@ app.UseStaticFiles();
 app.UseRouting();
 app.MapRazorPages();
 
-// Redirect root to hymns index
-app.MapGet("/", () => Results.Redirect("/hymns"));
-
 app.Run();

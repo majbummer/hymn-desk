@@ -467,3 +467,281 @@ p { margin-bottom: 1rem; max-width: 68ch; }
 }
 
 .badge-pd { border-color: #4B6B3A; color: #33471F; background: #EBF2E6; }
+
+/* ── HOMEPAGE: INTRO ────────────────────────────────────────────────────── */
+.homepage-intro {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 32px 56px;
+  text-align: center;
+}
+
+.homepage-intro p {
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  margin: 0 auto;
+  max-width: 60ch;
+}
+
+/* ── HOMEPAGE: LITURGICAL SEASON BAND ──────────────────────────────────── */
+.season-band {
+  max-width: 720px;
+  margin: 0 auto 72px;
+  padding: 28px 36px;
+  background: var(--parchment-panel);
+  border: 1px solid var(--rule);
+  border-left: 6px solid var(--gold);
+}
+
+.season-band-header { margin-bottom: 20px; }
+
+.season-band-eyebrow {
+  display: block;
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.season-band-name {
+  font-size: 30px;
+  margin-bottom: 4px;
+}
+
+.season-band-character {
+  color: var(--ink-muted);
+  font-size: 14.5px;
+  font-style: italic;
+  max-width: none;
+  margin: 0;
+}
+
+.season-featured-hymn {
+  display: block;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.season-featured-hymn .featured-label {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+.season-featured-hymn .featured-title {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--oxblood-dark);
+}
+
+.season-featured-hymn:hover .featured-title { color: var(--oxblood); text-decoration: none; }
+
+.season-featured-hymn .featured-firstline {
+  display: block;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.season-featured-hymn .featured-meta {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* ── FILTER: ACTIVE NOTE (e.g. meter filter carried over from Meter Index) ── */
+.filter-active-note {
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+/* ── METER INDEX ────────────────────────────────────────────────────────── */
+.meter-list { display: flex; flex-direction: column; gap: 4px; }
+
+.meter-row {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.meter-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.meter-notation {
+  font-family: monospace;
+  font-size: 19px;
+  color: var(--oxblood-dark);
+  border-bottom: none;
+}
+.meter-notation:hover { color: var(--oxblood); text-decoration: none; }
+
+.meter-count { color: var(--ink-muted); font-size: 13.5px; }
+
+.meter-tunes { margin-top: 6px; font-size: 14px; color: var(--ink-soft); }
+.meter-tunes-label { color: var(--ink-muted); margin-right: 6px; }
+
+/* ── FIRST LINE INDEX ──────────────────────────────────────────────────── */
+.firstline-list { display: flex; flex-direction: column; }
+
+.firstline-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--rule-light);
+  color: var(--ink);
+}
+.firstline-row:hover { background: var(--parchment-panel); text-decoration: none; }
+
+.firstline-text { font-style: italic; }
+.firstline-title { color: var(--ink-muted); font-size: 13.5px; margin-left: auto; text-align: right; }
+
+/* ── GLOSSARY ──────────────────────────────────────────────────────────── */
+.glossary-category {
+  font-size: 24px;
+  margin: 40px 20px 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--rule);
+}
+.glossary-category:first-of-type { margin-top: 12px; }
+
+.glossary-list { padding: 0 20px; }
+
+.glossary-entry {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.glossary-term {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--oxblood-dark);
+  margin-bottom: 4px;
+}
+
+.glossary-definition p { margin-bottom: 6px; font-size: 15px; }
+.glossary-lutheran-context { color: var(--ink-soft); font-size: 14px; }
+.glossary-related { color: var(--ink-muted); font-size: 13px; font-style: italic; }
+
+/* ── BACH CANTATAS ─────────────────────────────────────────────────────── */
+.cantata-occasion {
+  font-size: 22px;
+  margin: 36px 20px 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--rule);
+}
+.cantata-occasion:first-of-type { margin-top: 12px; }
+
+.cantata-list { display: flex; flex-direction: column; gap: 12px; padding: 0 20px 8px; }
+
+.cantata-card {
+  padding: 16px 20px;
+  background: var(--parchment-panel);
+  border-left: 3px solid var(--gold);
+}
+
+.cantata-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.cantata-bwv { font-family: monospace; font-size: 13px; color: var(--ink-muted); }
+.cantata-title { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 19px; color: var(--oxblood-dark); }
+.cantata-title-en { font-style: italic; color: var(--ink-soft); font-size: 14px; }
+
+.cantata-meta { color: var(--ink-muted); font-size: 13.5px; margin-bottom: 6px; }
+.cantata-chorale, .cantata-lectionary { font-size: 14px; margin-bottom: 4px; }
+.cantata-notes { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; }
+
+/* ── BIBLE LOOKUP ──────────────────────────────────────────────────────── */
+.bible-book-columns { display: flex; gap: 48px; flex-wrap: wrap; padding: 0 20px; }
+.bible-book-column { flex: 1; min-width: 260px; }
+
+.bible-testament-heading {
+  font-size: 22px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--rule);
+}
+
+.bible-book-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+.bible-book-link { padding: 4px 0; font-size: 15px; }
+
+.bible-chapter-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule-light);
+  margin-bottom: 20px;
+}
+
+.bible-chapter-picker { display: flex; flex-wrap: wrap; gap: 4px; max-width: 480px; }
+.bible-chapter-num {
+  display: inline-block;
+  min-width: 26px;
+  text-align: center;
+  padding: 2px 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-bottom: none;
+}
+.bible-chapter-num.current { color: var(--parchment); background: var(--oxblood-dark); }
+.bible-chapter-num:hover { color: var(--oxblood); text-decoration: none; }
+.bible-chapter-num.current:hover { color: var(--parchment); }
+
+.bible-chapter-prev, .bible-chapter-next { font-size: 14px; white-space: nowrap; }
+
+.bible-translation-form {
+  padding: 0 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.bible-translation-form select {
+  background: var(--parchment-panel);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  font-family: 'Lora', serif;
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+.bible-chapter-summary {
+  margin: 0 20px 28px;
+  padding: 20px 24px;
+  background: var(--parchment-panel);
+  border-left: 4px solid var(--gold);
+}
+.bible-summary-label { color: var(--gold); font-style: italic; font-size: 13px; margin-bottom: 8px; }
+.bible-summary-meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; font-size: 13px; color: var(--ink-soft); }
+
+.bible-verses { padding: 0 20px 32px; }
+
+.bible-verse { padding: 10px 0; border-bottom: 1px solid var(--rule-light); }
+.bible-verse-num { color: var(--gold); font-weight: 600; font-size: 13px; margin-right: 10px; vertical-align: super; }
+.bible-verse-text { font-size: 16.5px; line-height: 1.75; }
+.bible-verse-note {
+  margin-top: 6px;
+  margin-left: 20px;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 14px;
+  border-left: 2px solid var(--rule);
+  padding-left: 12px;
+}
+
+.bible-related-hymns { padding: 0 20px 40px; }
+.bible-related-hymns h2 { font-size: 24px; margin-bottom: 16px; }

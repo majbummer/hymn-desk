@@ -22,12 +22,20 @@
             <option value="Pentecost" selected="@(Model.Season=="Pentecost")">Pentecost</option>
             <option value="Reformation" selected="@(Model.Season=="Reformation")">Reformation</option>
         </select>
+        @if (!string.IsNullOrEmpty(Model.Meter))
+        {
+            <input type="hidden" name="meter" value="@Model.Meter" />
+        }
         <button type="submit" class="filter-btn">Filter</button>
-        @if (!string.IsNullOrEmpty(Model.Query) || !string.IsNullOrEmpty(Model.Season))
+        @if (!string.IsNullOrEmpty(Model.Query) || !string.IsNullOrEmpty(Model.Season) || !string.IsNullOrEmpty(Model.Meter))
         {
             <a href="/hymns" class="filter-clear">Clear</a>
         }
     </form>
+    @if (!string.IsNullOrEmpty(Model.Meter))
+    {
+        <p class="filter-active-note">Showing hymns in meter <strong>@Model.Meter</strong> — <a href="/hymns?q=@Model.Query&amp;season=@Model.Season">remove this filter</a></p>
+    }
 </div>
 
 <div class="catalog-grid">

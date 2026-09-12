@@ -84,6 +84,20 @@
         <p>@h.PreachingHook</p>
     }
 
+    @if (Model.ConfessionalConnections.Count > 0)
+    {
+        <h2>Catechism &amp; Confessional Connections</h2>
+        <ul class="plain-list">
+            @foreach (var conn in Model.ConfessionalConnections)
+            {
+                <li>
+                    <a href="/confessions/section/@conn.Id" class="xref">@conn.Title</a>
+                    <span class="entry-original">@conn.DocumentName@(!string.IsNullOrEmpty(conn.Part) ? $" — {conn.Part}" : "")</span>
+                </li>
+            }
+        </ul>
+    }
+
 </article>
 
 <aside class="wiki-infobox">

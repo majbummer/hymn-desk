@@ -1,0 +1,32 @@
+@page "/glossary"
+@model LutheranMusicLibrary.Web.Pages.Glossary.IndexModel
+@{ ViewData["Title"] = "Glossary"; }
+
+<div class="page-header">
+    <h1>Glossary</h1>
+    <p class="page-subtitle">@Model.Terms.Count.ToString("N0") terms · Liturgical and musical vocabulary, explained in plain language</p>
+</div>
+
+@foreach (var category in Model.Terms.Select(t => t.Category).Distinct())
+{
+    <h2 class="glossary-category">@category</h2>
+    <dl class="glossary-list">
+        @foreach (var term in Model.Terms.Where(t => t.Category == category))
+        {
+            <div class="glossary-entry">
+                <dt class="glossary-term">@term.Term</dt>
+                <dd class="glossary-definition">
+                    <p>@term.Definition</p>
+                    @if (!string.IsNullOrEmpty(term.LutheranContext))
+                    {
+                        <p class="glossary-lutheran-context"><em>In Lutheran practice:</em> @term.LutheranContext</p>
+                    }
+                    @if (!string.IsNullOrEmpty(term.RelatedTerms))
+                    {
+                        <p class="glossary-related">See also: @term.RelatedTerms</p>
+                    }
+                </dd>
+            </div>
+        }
+    </dl>
+}

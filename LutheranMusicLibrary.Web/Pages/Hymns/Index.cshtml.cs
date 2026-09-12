@@ -8,6 +8,7 @@ public class IndexModel : PageModel
     public List<HymnSummary> Hymns { get; set; } = new();
     public string Query { get; set; } = "";
     public string Season { get; set; } = "";
+    public string Meter { get; set; } = "";
 
     public IndexModel(DatabaseService db) => _db = db;
 
@@ -15,6 +16,7 @@ public class IndexModel : PageModel
     {
         Query = q ?? "";
         Season = season ?? "";
-        Hymns = _db.SearchHymns(Query, Season, meter ?? "");
+        Meter = meter ?? "";
+        Hymns = _db.SearchHymns(Query, Season, Meter);
     }
 }

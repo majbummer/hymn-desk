@@ -28,3 +28,42 @@
         </p>
     </div>
 </div>
+
+<div class="homepage-intro">
+    <p>
+        Hymn Desk began as one church musician's answer to a shelf of hymnal indexes —
+        a way to move between ELW, LBW, LSB, TLH, and a dozen other books without
+        flipping through each one by hand. Every text here is cross-referenced by
+        hymnal number, scripture connection, and liturgical season, built one hymn
+        at a time from years of cataloging a working church music library.
+    </p>
+</div>
+
+@if (Model.Season != null)
+{
+    <div class="season-band" style="border-left-color: @LiturgicalCalendar.AccentHex(Model.Season.Name)">
+        <div class="season-band-header">
+            <span class="season-band-eyebrow">The church year today</span>
+            <h2 class="season-band-name">@Model.Season.Name</h2>
+            @if (!string.IsNullOrEmpty(Model.Season.Character))
+            {
+                <p class="season-band-character">@Model.Season.Character</p>
+            }
+        </div>
+        @if (Model.FeaturedHymn != null)
+        {
+            <a href="/hymns/@Model.FeaturedHymn.Slug" class="season-featured-hymn">
+                <span class="featured-label">Featured for this season</span>
+                <span class="featured-title">@Model.FeaturedHymn.Title</span>
+                @if (!string.IsNullOrEmpty(Model.FeaturedHymn.FirstLine))
+                {
+                    <span class="featured-firstline">@Model.FeaturedHymn.FirstLine</span>
+                }
+                <span class="featured-meta">
+                    @if (!string.IsNullOrEmpty(Model.FeaturedHymn.Author)) { <text>@Model.FeaturedHymn.Author</text> }
+                    @if (Model.FeaturedHymn.Year > 0) { <text> · @Model.FeaturedHymn.Year</text> }
+                </span>
+            </a>
+        }
+    </div>
+}

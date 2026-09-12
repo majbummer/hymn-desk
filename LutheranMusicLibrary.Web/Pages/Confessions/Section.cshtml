@@ -1,0 +1,46 @@
+@page "/confessions/section/{id:int}"
+@model LutheranMusicLibrary.Web.Pages.Confessions.SectionModel
+@{ ViewData["Title"] = Model.Detail == null ? "Confessions & Catechisms" : $"{Model.Detail.Title} — {Model.Detail.DocumentName}"; }
+
+@if (Model.Detail != null)
+{
+    var d = Model.Detail;
+    <div class="page-header">
+        <h1>@d.Title</h1>
+        <p class="page-subtitle">
+            <a href="/confessions">All confessions &amp; catechisms</a> ·
+            <a href="/confessions/@d.DocumentSlug">@d.DocumentName</a>
+            @if (!string.IsNullOrEmpty(d.Part)) { <text> · @d.Part</text> }
+        </p>
+    </div>
+
+    <div class="confession-section-text">
+        @foreach (var para in d.Content.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            <p>@para</p>
+        }
+    </div>
+
+    @if (d.RelatedHymns.Count > 0)
+    {
+        <div class="bible-related-hymns">
+            <h2>Hymns connected to this article</h2>
+            <div class="catalog-grid">
+                @foreach (var hymn in d.RelatedHymns)
+                {
+                    <a href="/hymns/@hymn.Slug" class="catalog-card">
+                        <div class="card-title">@hymn.Title</div>
+                        @if (!string.IsNullOrEmpty(hymn.FirstLine))
+                        {
+                            <div class="card-subtitle">@hymn.FirstLine</div>
+                        }
+                        <div class="card-meta">
+                            @if (!string.IsNullOrEmpty(hymn.Author)) { <span>@hymn.Author</span> }
+                            @if (hymn.Year > 0) { <span class="meta-sep">·</span><span>@hymn.Year</span> }
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+}

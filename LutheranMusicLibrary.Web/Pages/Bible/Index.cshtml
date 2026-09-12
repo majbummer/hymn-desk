@@ -1,0 +1,32 @@
+@page "/bible"
+@model LutheranMusicLibrary.Web.Pages.Bible.IndexModel
+@{ ViewData["Title"] = "Bible Lookup"; }
+
+<div class="page-header">
+    <h1>Bible Lookup</h1>
+    <p class="page-subtitle">
+        14 public-domain translations, Lutheran theological notes on every verse and chapter,
+        and every hymn that draws on a given passage.
+    </p>
+</div>
+
+<div class="bible-book-columns">
+    <div class="bible-book-column">
+        <h2 class="bible-testament-heading">Old Testament</h2>
+        <div class="bible-book-grid">
+            @foreach (var book in Model.Books.Where(b => b.Testament == "OT"))
+            {
+                <a href="/bible/@book.Slug/1" class="bible-book-link">@book.Name</a>
+            }
+        </div>
+    </div>
+    <div class="bible-book-column">
+        <h2 class="bible-testament-heading">New Testament</h2>
+        <div class="bible-book-grid">
+            @foreach (var book in Model.Books.Where(b => b.Testament == "NT"))
+            {
+                <a href="/bible/@book.Slug/1" class="bible-book-link">@book.Name</a>
+            }
+        </div>
+    </div>
+</div>

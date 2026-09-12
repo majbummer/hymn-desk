@@ -1,0 +1,25 @@
+@page "/confessions"
+@model LutheranMusicLibrary.Web.Pages.Confessions.IndexModel
+@{ ViewData["Title"] = "Confessions & Catechisms"; }
+
+<div class="page-header">
+    <h1>Confessions &amp; Catechisms</h1>
+    <p class="page-subtitle">
+        The Lutheran confessional writings collected in the Book of Concord — browse each document,
+        and see which hymns connect to a given article once those connections are tagged.
+    </p>
+</div>
+
+<div class="confessions-list">
+    @foreach (var doc in Model.Documents)
+    {
+        <a href="/confessions/@doc.Slug" class="confession-card">
+            <div class="confession-card-head">
+                <span class="confession-name">@doc.Name</span>
+                <span class="confession-year">@doc.Year</span>
+            </div>
+            <p class="confession-description">@doc.Description</p>
+            <span class="confession-count">@doc.SectionCount.ToString("N0") section@(doc.SectionCount == 1 ? "" : "s")</span>
+        </a>
+    }
+</div>

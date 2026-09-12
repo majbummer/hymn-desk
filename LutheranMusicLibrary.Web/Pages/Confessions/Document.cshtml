@@ -1,0 +1,46 @@
+@page "/confessions/{slug}"
+@model LutheranMusicLibrary.Web.Pages.Confessions.DocumentModel
+@{ ViewData["Title"] = Model.Detail?.Name ?? "Confessions & Catechisms"; }
+
+@if (Model.Detail != null)
+{
+    var d = Model.Detail;
+    <div class="page-header">
+        <h1>@d.Name</h1>
+        <p class="page-subtitle">@d.Year · <a href="/confessions">All confessions &amp; catechisms</a></p>
+        @if (!string.IsNullOrEmpty(d.Description))
+        {
+            <p>@d.Description</p>
+        }
+    </div>
+
+    var hasParts = d.Sections.Any(s => !string.IsNullOrEmpty(s.Part));
+    @if (hasParts)
+    {
+        @foreach (var part in d.Sections.Select(s => s.Part).Distinct())
+        {
+            <h2 class="confession-part-heading">@part</h2>
+            <div class="confession-section-list">
+                @foreach (var s in d.Sections.Where(x => x.Part == part))
+                {
+                    <a href="/confessions/section/@s.Id" class="confession-section-link">
+                        @if (!string.IsNullOrEmpty(s.Number)) { <span class="section-number">@s.Number</span> }
+                        <span class="section-title">@s.Title</span>
+                    </a>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="confession-section-list">
+            @foreach (var s in d.Sections)
+            {
+                <a href="/confessions/section/@s.Id" class="confession-section-link">
+                    @if (!string.IsNullOrEmpty(s.Number)) { <span class="section-number">@s.Number</span> }
+                    <span class="section-title">@s.Title</span>
+                </a>
+            }
+        </div>
+    }
+}
