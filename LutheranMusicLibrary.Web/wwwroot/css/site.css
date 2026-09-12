@@ -1043,3 +1043,46 @@ p { margin-bottom: 1rem; max-width: 68ch; }
 }
 .donate-btn:hover { border-color: var(--gold); text-decoration: none; }
 .donate-note { color: var(--ink-muted); font-size: 14px; font-style: italic; }
+
+/* ── HISTORICAL TIMELINE ───────────────────────────────────────────────── */
+.timeline {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+  position: relative;
+  border-left: 2px solid var(--rule);
+  margin-left: 40px;
+}
+
+.timeline-event { position: relative; padding: 0 0 40px 32px; }
+.timeline-event::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--parchment);
+}
+
+.timeline-year {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.timeline-title { font-size: 22px; margin-bottom: 8px; }
+
+.timeline-image {
+  float: right;
+  width: 110px;
+  height: auto;
+  margin: 0 0 10px 16px;
+  border: 1px solid var(--rule);
+}
+
+.timeline-credit { font-size: 11.5px; color: var(--ink-muted); font-style: italic; clear: both; }

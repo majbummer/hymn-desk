@@ -1294,6 +1294,25 @@ public class DatabaseService
         return urls;
     }
 
+    // ── HISTORICAL TIMELINE ───────────────────────────────────────────────────
+
+    public List<TimelineEvent> GetTimeline()
+    {
+        var results = new List<TimelineEvent>();
+        using var conn = GetConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT year_label, title, description, image_url, image_credit FROM timeline_events ORDER BY sort_year";
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            results.Add(new TimelineEvent
+            {
+                YearLabel = Safe(r, "year_label"), Title = Safe(r, "title"),
+                Description = Safe(r, "description"), ImageUrl = Safe(r, "image_url"),
+                ImageCredit = Safe(r, "image_credit"),
+            });
+        return results;
+    }
+
     // ── STATS ─────────────────────────────────────────────────────────────────
 
     public SiteStats GetStats()
@@ -1649,6 +1668,15 @@ public class ServicePlanDetail
     public string PlanDate { get; set; } = "";
     public string Note { get; set; } = "";
     public Dictionary<string, List<ServicePlanItem>> ItemsBySlot { get; set; } = new();
+}
+
+public class TimelineEvent
+{
+    public string YearLabel { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string ImageUrl { get; set; } = "";
+    public string ImageCredit { get; set; } = "";
 }
 
 public class SeasonInfo

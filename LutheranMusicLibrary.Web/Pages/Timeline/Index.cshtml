@@ -1,0 +1,36 @@
+@page "/timeline"
+@model LutheranMusicLibrary.Web.Pages.Timeline.IndexModel
+@{ ViewData["Title"] = "Historical Timeline"; }
+
+<div class="page-header">
+    <h1>Historical Timeline</h1>
+    <p class="page-subtitle">
+        Lutheran hymnody from before Luther to the present, with a few non-Lutheran
+        contrast points along the way — Calvin's Genevan Psalter, Isaac Watts, Charles Wesley —
+        since so many of their hymns ended up in Lutheran hymnals anyway.
+    </p>
+</div>
+
+<div class="timeline">
+    @foreach (var e in Model.Events)
+    {
+        <div class="timeline-event">
+            <div class="timeline-year">@e.YearLabel</div>
+            <div class="timeline-content">
+                @if (!string.IsNullOrEmpty(e.ImageUrl))
+                {
+                    <img src="@e.ImageUrl" alt="@e.Title" class="timeline-image" loading="lazy" />
+                }
+                <h2 class="timeline-title">@e.Title</h2>
+                @if (!string.IsNullOrEmpty(e.Description))
+                {
+                    <p>@e.Description</p>
+                }
+                @if (!string.IsNullOrEmpty(e.ImageCredit))
+                {
+                    <p class="timeline-credit">@e.ImageCredit</p>
+                }
+            </div>
+        </div>
+    }
+</div>

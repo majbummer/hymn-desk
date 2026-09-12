@@ -12,7 +12,8 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 RUN apt-get update && apt-get install -y curl
-RUN curl -L -o /app/lutheran_music_planner.db "https://github.com/majbummer/hymn-desk/releases/download/1.0/lutheran_music_planner.db"
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-ENTRYPOINT ["dotnet", "LutheranMusicLibrary.Web.dll"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
