@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+        (function () {
+            var saved = localStorage.getItem('hymn-desk-theme');
+            var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        })();
+    </script>
     <title>@ViewData["Title"] — Hymn Desk</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,17 +28,24 @@
                     <a href="/hymns">Hymn Texts</a>
                     <a href="/tunes">Hymn Tunes</a>
                     <a href="/people">People</a>
+                    <a href="/people/countries">People by Country</a>
                     <a href="/first-lines">First Line Index</a>
                     <a href="/meters">Meter Index</a>
+                    <a href="/law-gospel">Law/Gospel Index</a>
+                    <a href="/compare-hymnals">Compare Hymnals</a>
+                    <a href="/hymns/random">Random Hymn</a>
                 </div>
             </details>
             <details class="nav-dropdown">
                 <summary>Reference</summary>
                 <div class="nav-dropdown-menu">
                     <a href="/bible">Bible Lookup</a>
+                    <a href="/lectionary">Lectionary Planner</a>
+                    <a href="/hymn-of-the-day">Hymn of the Day Calendar</a>
                     <a href="/bach-cantatas">Bach Cantatas</a>
                     <a href="/glossary">Glossary</a>
                     <a href="/confessions">Confessions &amp; Catechisms</a>
+                    <a href="/service-builder">Service Builder</a>
                 </div>
             </details>
         </nav>
@@ -39,6 +53,10 @@
             <input type="search" name="q" placeholder="Search hymns, tunes, people…" />
             <button type="submit">Search</button>
         </form>
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <span class="theme-icon-dark">☾</span>
+            <span class="theme-icon-light">☀</span>
+        </button>
     </div>
 </header>
 
@@ -48,6 +66,11 @@
 
 <footer class="site-footer">
     <div class="site-footer-inner">
+        <nav class="footer-nav">
+            <a href="/about">About</a>
+            <a href="/resources">Resources</a>
+            <a href="/donate">Support Hymn Desk</a>
+        </nav>
         <p>Hymn Desk — a personal sacred music reference database.</p>
         <p class="footer-note">All hymn texts and tunes are public domain unless otherwise noted. PHH notes paraphrased from <em>Psalter Hymnal Handbook</em>.</p>
     </div>
@@ -63,6 +86,17 @@
         document.querySelectorAll('.nav-dropdown[open]').forEach(function (dd) {
             if (!dd.contains(e.target)) dd.open = false;
         });
+    });
+
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('hymn-desk-theme', 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('hymn-desk-theme', 'dark');
+        }
     });
 </script>
 </body>

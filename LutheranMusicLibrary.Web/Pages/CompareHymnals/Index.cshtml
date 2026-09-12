@@ -1,0 +1,63 @@
+@page "/compare-hymnals"
+@model LutheranMusicLibrary.Web.Pages.CompareHymnals.IndexModel
+@{
+    ViewData["Title"] = "Compare Hymnals";
+    var h1Name = Model.Hymnals.FirstOrDefault(h => h.Code == Model.Code1)?.Name ?? Model.Code1;
+    var h2Name = Model.Hymnals.FirstOrDefault(h => h.Code == Model.Code2)?.Name ?? Model.Code2;
+}
+
+<div class="page-header">
+    <h1>Compare Hymnals</h1>
+    <p class="page-subtitle">See how two hymnals number and share the same hymn texts, side by side.</p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <select name="h1" class="filter-select">
+            @foreach (var h in Model.Hymnals)
+            {
+                <option value="@h.Code" selected="@(h.Code == Model.Code1)">@h.Name (@h.Year)</option>
+            }
+        </select>
+        <span style="align-self:center; color:var(--ink-muted);">vs.</span>
+        <select name="h2" class="filter-select">
+            @foreach (var h in Model.Hymnals)
+            {
+                <option value="@h.Code" selected="@(h.Code == Model.Code2)">@h.Name (@h.Year)</option>
+            }
+        </select>
+        <button type="submit" class="filter-btn">Compare</button>
+    </form>
+</div>
+
+@if (Model.Code1 == Model.Code2)
+{
+    <p class="empty-state">Pick two different hymnals to compare.</p>
+}
+else
+{
+    <p class="page-subtitle" style="padding: 0 20px 16px;">@Model.Rows.Count.ToString("N0") hymns appear in both @h1Name and @h2Name</p>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <p class="empty-state">No shared hymns found between these two hymnals in the catalog yet.</p>
+    }
+    else
+    {
+        <table class="catalog-table">
+            <thead>
+                <tr><th>@h1Name</th><th>@h2Name</th><th>Title</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        <td class="td-count">@row.Number1</td>
+                        <td class="td-count">@row.Number2</td>
+                        <td><a href="/hymns/@row.Slug" class="xref">@row.Title</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

@@ -1,0 +1,37 @@
+@page "/law-gospel"
+@model LutheranMusicLibrary.Web.Pages.LawGospel.IndexModel
+@{ ViewData["Title"] = "Law/Gospel Index"; }
+
+<div class="page-header">
+    <h1>Law/Gospel Index</h1>
+    <p class="page-subtitle">
+        Hymns grouped by whether their theological analysis emphasizes Law, Gospel, or holds both together —
+        useful for building a service with an intentional theological arc. This is a simple word-presence
+        heuristic run against each hymn's existing analysis, not a doctrinal ruling — read the hymn itself
+        before leaning on the category.
+    </p>
+</div>
+
+<div class="lawgospel-groups">
+    @foreach (var group in new[] { "Law & Gospel", "Gospel", "Law" })
+    {
+        var hymns = Model.Groups.ContainsKey(group) ? Model.Groups[group] : new List<HymnSummary>();
+        <details class="lawgospel-group" open="@(group == "Law")">
+            <summary class="lawgospel-group-summary">
+                @group <span class="lawgospel-count">(@hymns.Count.ToString("N0"))</span>
+            </summary>
+            <div class="firstline-list">
+                @foreach (var hymn in hymns)
+                {
+                    <a href="/hymns/@hymn.Slug" class="firstline-row">
+                        <span class="firstline-text">@hymn.Title</span>
+                        @if (!string.IsNullOrEmpty(hymn.Author))
+                        {
+                            <span class="firstline-title">@hymn.Author</span>
+                        }
+                    </a>
+                }
+            </div>
+        </details>
+    }
+</div>

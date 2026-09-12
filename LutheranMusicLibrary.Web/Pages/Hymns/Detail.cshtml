@@ -10,7 +10,7 @@
 <article class="wiki-article">
 
     <div class="entry-header">
-        <div class="breadcrumb"><a href="/hymns">Hymn Texts</a> /</div>
+        <div class="breadcrumb no-print"><a href="/hymns">Hymn Texts</a> /</div>
         <h1 class="entry-title">@h.Title</h1>
         @if (!string.IsNullOrEmpty(h.OriginalTitle))
         {
@@ -20,6 +20,7 @@
         {
             <p class="entry-firstline">@h.FirstLine</p>
         }
+        <button type="button" class="print-btn no-print" onclick="window.print()">🖶 Print this page</button>
     </div>
 
     @if (!string.IsNullOrEmpty(h.TheologicalAnalysis))
@@ -97,6 +98,20 @@
             }
         </ul>
     }
+    @if (!string.IsNullOrEmpty(Model.StanzaArc))
+    {
+        <h2>Stanza Arc</h2>
+        <p><em>The narrative or theological arc traced by this tune's stanzas:</em> @Model.StanzaArc</p>
+    }
+
+    <h2 class="no-print">Look Further</h2>
+    <ul class="plain-list no-print">
+        <li><a href="https://hymnary.org/search?qu=@Uri.EscapeDataString(h.Title)" target="_blank" rel="noopener">Search Hymnary.org for "@h.Title" ↗</a></li>
+        @if (h.Tunes.Count > 0)
+        {
+            <li><a href="https://imslp.org/index.php?title=Special:Search&search=@Uri.EscapeDataString(h.Tunes[0].TuneName)" target="_blank" rel="noopener">Search IMSLP for public-domain scores of "@h.Tunes[0].TuneName" ↗</a></li>
+        }
+    </ul>
 
 </article>
 

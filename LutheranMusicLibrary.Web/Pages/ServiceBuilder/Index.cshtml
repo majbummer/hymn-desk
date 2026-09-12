@@ -1,0 +1,51 @@
+@page "/service-builder"
+@model LutheranMusicLibrary.Web.Pages.ServiceBuilder.IndexModel
+@{ ViewData["Title"] = "Service Builder"; }
+
+<div class="page-header">
+    <h1>Service Builder</h1>
+    <p class="page-subtitle">
+        Sketch — build an order of service by picking hymns into slots, then print a clean copy.
+        This is a first pass: no lectionary auto-loading or drag-and-drop yet, just a working planner.
+    </p>
+</div>
+
+<div class="sb-new-plan">
+    <h2>Start a new service plan</h2>
+    <form method="post" asp-page-handler="Create" class="sb-new-plan-form">
+        <label>
+            Date
+            <input type="date" name="planDate" />
+        </label>
+        <label>
+            Note <span class="ib-label" style="text-transform:none;">(e.g. "Advent 1" or a service name)</span>
+            <input type="text" name="note" placeholder="Optional note" />
+        </label>
+        <button type="submit" class="filter-btn">Create Plan</button>
+    </form>
+</div>
+
+@if (Model.Plans.Count > 0)
+{
+    <h2 class="lectionary-hymns-heading">Existing plans</h2>
+    <table class="catalog-table">
+        <thead><tr><th>Date</th><th>Note</th><th>Hymns</th><th></th><th></th></tr></thead>
+        <tbody>
+            @foreach (var plan in Model.Plans)
+            {
+                <tr>
+                    <td>@plan.PlanDate</td>
+                    <td>@plan.Note</td>
+                    <td class="td-count">@plan.ItemCount</td>
+                    <td><a href="/service-builder/@plan.Id" class="xref">Edit</a></td>
+                    <td>
+                        <form method="post" asp-page-handler="Delete" onsubmit="return confirm('Delete this service plan?');">
+                            <input type="hidden" name="planId" value="@plan.Id" />
+                            <button type="submit" class="filter-clear" style="background:none;border:none;cursor:pointer;">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,5 +1,27 @@
 using System;
 
+/// <summary>Classifies a person into a broad historical era from their birth year.</summary>
+public static class PersonEra
+{
+    public static string GetEra(int birthYear)
+    {
+        if (birthYear <= 0) return "";
+        if (birthYear < 500) return "Early Church";
+        if (birthYear < 1500) return "Medieval";
+        if (birthYear < 1650) return "Reformation";
+        if (birthYear < 1750) return "Baroque";
+        if (birthYear < 1830) return "Classical";
+        if (birthYear < 1900) return "Romantic";
+        if (birthYear < 1950) return "Modern";
+        return "Contemporary";
+    }
+
+    public static readonly string[] AllEras =
+    {
+        "Early Church", "Medieval", "Reformation", "Baroque", "Classical", "Romantic", "Modern", "Contemporary",
+    };
+}
+
 /// <summary>
 /// Computes the current liturgical season from a calendar date, using the
 /// Meeus/Jones/Butcher algorithm for the Gregorian Easter date. Season names
@@ -39,6 +61,19 @@ public static class LiturgicalCalendar
         if (today.Month == 11 && today.Day == 1) return "All Saints";
 
         return "Time after Pentecost";
+    }
+
+    /// <summary>
+    /// The Revised Common Lectionary's 3-year cycle (A/B/C) for the church year
+    /// currently underway. Year A began Advent 2022; the cycle repeats every 3 years.
+    /// </summary>
+    public static string GetCurrentLectionaryYear(DateOnly today)
+    {
+        int adventStartYear = today.Year;
+        var advent1ThisYear = FirstSundayOfAdvent(today.Year);
+        if (today < advent1ThisYear) adventStartYear -= 1;
+        int offset = ((adventStartYear - 2022) % 3 + 3) % 3;
+        return offset switch { 0 => "A", 1 => "B", _ => "C" };
     }
 
     /// <summary>First Sunday of Advent: the Sunday on or after November 27.</summary>

@@ -1,0 +1,33 @@
+@page "/lectionary"
+@model LutheranMusicLibrary.Web.Pages.Lectionary.IndexModel
+@{ ViewData["Title"] = "Lectionary Planner"; }
+
+<div class="page-header">
+    <h1>Lectionary Planner</h1>
+    <p class="page-subtitle">
+        The three-year Revised Common Lectionary — readings, summaries, and hymn suggestions for every Sunday.
+        The current church year is Year @Model.CurrentCycle.
+    </p>
+</div>
+
+<div class="lectionary-year-tabs">
+    <a href="/lectionary?year=A" class="year-tab @(Model.YearCycle=="A" ? "active" : "")">Year A</a>
+    <a href="/lectionary?year=B" class="year-tab @(Model.YearCycle=="B" ? "active" : "")">Year B</a>
+    <a href="/lectionary?year=C" class="year-tab @(Model.YearCycle=="C" ? "active" : "")">Year C</a>
+</div>
+
+@foreach (var season in Model.Sundays.Select(s => s.Season).Distinct())
+{
+    <h2 class="lectionary-season-heading" style="border-left-color: @LiturgicalCalendar.AccentHex(season == "Season after Pentecost" ? "Time after Pentecost" : season)">
+        @season
+    </h2>
+    <div class="lectionary-sunday-list">
+        @foreach (var sunday in Model.Sundays.Where(s => s.Season == season))
+        {
+            <a href="/lectionary/@Model.YearCycle/@sunday.Id" class="lectionary-sunday-link">
+                <span class="lectionary-sunday-name">@sunday.SundayName</span>
+                <span class="lectionary-sunday-color">@sunday.Color</span>
+            </a>
+        }
+    </div>
+}

@@ -1,33 +1,87 @@
 @page "/people"
 @model LutheranMusicLibrary.Web.Pages.People.IndexModel
-@{ ViewData["Title"] = "People"; }
+@{
+    ViewData["Title"] = "People";
+    var baseQuery = $"/people?q={Uri.EscapeDataString(Model.Query)}&role={Uri.EscapeDataString(Model.Role)}&era={Uri.EscapeDataString(Model.Era)}&sort={Uri.EscapeDataString(Model.Sort)}";
+}
 
 <div class="page-header">
     <h1>People</h1>
-    <p class="page-subtitle">@Model.People.Count.ToString("N0") authors, composers, and translators</p>
+    <p class="page-subtitle">
+        @Model.Result.TotalCount.ToString("N0") authors, composers, and translators
+        @if (Model.Result.TotalPages > 1)
+        {
+            <text> · page @Model.Result.Page of @Model.Result.TotalPages</text>
+        }
+        · <a href="/people/countries">Browse by country →</a>
+    </p>
 </div>
 
 <div class="filter-bar">
     <form method="get" class="filter-form">
         <input type="search" name="q" value="@Model.Query" placeholder="Search names, countries…" class="filter-input" />
-        <button type="submit" class="filter-btn">Search</button>
-        @if (!string.IsNullOrEmpty(Model.Query)) { <a href="/people" class="filter-clear">Clear</a> }
+        <select name="role" class="filter-select">
+            <option value="">All Roles</option>
+            <option value="author" selected="@(Model.Role=="author")">Authors</option>
+            <option value="composer" selected="@(Model.Role=="composer")">Composers</option>
+            <option value="translator" selected="@(Model.Role=="translator")">Translators</option>
+        </select>
+        <select name="era" class="filter-select">
+            <option value="">All Eras</option>
+            @foreach (var era in PersonEra.AllEras)
+            {
+                <option value="@era" selected="@(Model.Era==era)">@era</option>
+            }
+        </select>
+        <select name="sort" class="filter-select">
+            <option value="" selected="@(Model.Sort=="")">Sort: Name</option>
+            <option value="birth" selected="@(Model.Sort=="birth")">Sort: Birth Year</option>
+        </select>
+        <button type="submit" class="filter-btn">Filter</button>
+        @if (!string.IsNullOrEmpty(Model.Query) || !string.IsNullOrEmpty(Model.Role) || !string.IsNullOrEmpty(Model.Era) || !string.IsNullOrEmpty(Model.Sort))
+        {
+            <a href="/people" class="filter-clear">Clear</a>
+        }
     </form>
 </div>
 
-<table class="catalog-table">
-    <thead>
-        <tr><th>Name</th><th>Dates</th><th>Country</th><th></th></tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model.People)
-        {
-            <tr>
-                <td><a href="/people/@p.Slug" class="xref">@p.Name</a></td>
-                <td>@p.Dates</td>
-                <td>@p.Country</td>
-                <td>@(p.HasBio ? "✦" : "")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+@if (Model.Result.Items.Count == 0)
+{
+    <p class="empty-state">No one matches that search. Try a different name, or <a href="/people">clear the filters</a>.</p>
+}
+else
+{
+    <table class="catalog-table">
+        <thead>
+            <tr><th>Name</th><th>Role</th><th>Era</th><th>Dates</th><th>Country</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.Result.Items)
+            {
+                <tr>
+                    <td><a href="/people/@p.Slug" class="xref">@p.Name</a></td>
+                    <td>
+                        @if (p.Roles.Contains("author"))
+                        {
+                            <span class="badge badge-author">Author</span>
+                        }
+                        @if (p.Roles.Contains("composer"))
+                        {
+                            <span class="badge badge-composer">Composer</span>
+                        }
+                        @if (p.Roles.Contains("translator"))
+                        {
+                            <span class="badge badge-translator">Translator</span>
+                        }
+                    </td>
+                    <td class="td-meter">@p.Era</td>
+                    <td>@p.Dates</td>
+                    <td>@p.Country</td>
+                    <td>@(p.HasBio ? "✦" : "")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<partial name="_Pagination" model="@(new PaginationInfo { Page = Model.Result.Page, TotalPages = Model.Result.TotalPages, BaseQuery = baseQuery })" />

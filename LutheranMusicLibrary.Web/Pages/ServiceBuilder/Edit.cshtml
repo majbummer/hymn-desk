@@ -1,0 +1,108 @@
+@page "/service-builder/{id:int}"
+@model LutheranMusicLibrary.Web.Pages.ServiceBuilder.EditModel
+@{
+    ViewData["Title"] = "Service Builder";
+    var p = Model.Plan!;
+}
+
+<div class="page-header">
+    <h1>@(string.IsNullOrEmpty(p.Note) ? "Service Plan" : p.Note)</h1>
+    <p class="page-subtitle">
+        @(string.IsNullOrEmpty(p.PlanDate) ? "No date set" : p.PlanDate) ·
+        <a href="/service-builder">All plans</a> ·
+        <a href="/service-builder/@p.Id/print">Print this order of service →</a>
+    </p>
+</div>
+
+<div class="sb-slots">
+    @foreach (var slot in DatabaseService.ServiceSlots)
+    {
+        var items = p.ItemsBySlot.ContainsKey(slot) ? p.ItemsBySlot[slot] : new List<ServicePlanItem>();
+        <div class="sb-slot">
+            <h2 class="sb-slot-heading">@slot</h2>
+            @if (items.Count == 0)
+            {
+                <p class="sb-slot-empty">No hymn assigned yet.</p>
+            }
+            else
+            {
+                <div class="sb-slot-items">
+                    @for (int i = 0; i < items.Count; i++)
+                    {
+                        var item = items[i];
+                        <div class="sb-item">
+                            <span class="sb-item-title">@item.Hymn.Title</span>
+                            @if (!string.IsNullOrEmpty(item.Hymn.Author)) { <span class="sb-item-meta">@item.Hymn.Author</span> }
+                            <div class="sb-item-actions">
+                                @if (i > 0)
+                                {
+                                    <form method="post" asp-page-handler="Move" style="display:inline;">
+                                        <input type="hidden" name="id" value="@p.Id" /><input type="hidden" name="itemId" value="@item.ItemId" />
+                                        <input type="hidden" name="direction" value="up" /><input type="hidden" name="q" value="@Model.Query" />
+                                        <button type="submit" class="sb-icon-btn" title="Move up">↑</button>
+                                    </form>
+                                }
+                                @if (i < items.Count - 1)
+                                {
+                                    <form method="post" asp-page-handler="Move" style="display:inline;">
+                                        <input type="hidden" name="id" value="@p.Id" /><input type="hidden" name="itemId" value="@item.ItemId" />
+                                        <input type="hidden" name="direction" value="down" /><input type="hidden" name="q" value="@Model.Query" />
+                                        <button type="submit" class="sb-icon-btn" title="Move down">↓</button>
+                                    </form>
+                                }
+                                <form method="post" asp-page-handler="Remove" style="display:inline;">
+                                    <input type="hidden" name="id" value="@p.Id" /><input type="hidden" name="itemId" value="@item.ItemId" />
+                                    <input type="hidden" name="q" value="@Model.Query" />
+                                    <button type="submit" class="sb-icon-btn sb-remove" title="Remove">✕</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="sb-add-panel">
+    <h2>Add a hymn</h2>
+    <form method="get" class="filter-form">
+        <input type="hidden" name="id" value="@p.Id" />
+        <input type="search" name="q" value="@Model.Query" placeholder="Search by title, author, first line…" class="filter-input" />
+        <button type="submit" class="filter-btn">Search</button>
+    </form>
+
+    @if (!string.IsNullOrEmpty(Model.Query))
+    {
+        @if (Model.SearchResults.Count == 0)
+        {
+            <p class="empty-state">No hymns match "@Model.Query".</p>
+        }
+        else
+        {
+            <div class="sb-results">
+                @foreach (var hymn in Model.SearchResults)
+                {
+                    <div class="sb-result-row">
+                        <div>
+                            <span class="sb-item-title">@hymn.Title</span>
+                            @if (!string.IsNullOrEmpty(hymn.Author)) { <span class="sb-item-meta">@hymn.Author</span> }
+                        </div>
+                        <form method="post" asp-page-handler="AddItem" class="sb-add-form">
+                            <input type="hidden" name="id" value="@p.Id" />
+                            <input type="hidden" name="textId" value="@hymn.Id" />
+                            <input type="hidden" name="q" value="@Model.Query" />
+                            <select name="slot" class="filter-select">
+                                @foreach (var slot in DatabaseService.ServiceSlots)
+                                {
+                                    <option value="@slot">@slot</option>
+                                }
+                            </select>
+                            <button type="submit" class="filter-btn">Add</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>

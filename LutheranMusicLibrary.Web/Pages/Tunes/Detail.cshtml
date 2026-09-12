@@ -18,6 +18,12 @@
         <p class="entry-lede">@t.Notes</p>
     }
 
+    @if (!string.IsNullOrEmpty(t.Arc))
+    {
+        <h2>Stanza Arc</h2>
+        <p><em>The narrative or theological arc traced by this tune's stanzas:</em> @t.Arc</p>
+    }
+
     @if (t.LinkedTexts.Count > 0)
     {
         <h2>Associated Hymn Texts (@t.LinkedTexts.Count)</h2>
@@ -37,11 +43,16 @@
 
     @if (t.BachCantatas.Count > 0)
     {
-        <h2>Bach Cantatas Using This Tune</h2>
+        <h2>Bach Cantatas Using This Tune (@t.BachCantatas.Count)</h2>
         @foreach (var bc in t.BachCantatas)
         {
             <div class="bach-entry">
-                <div class="bach-title">@bc.Bwv — @bc.TitleEnglish @(bc.YearComposed > 0 ? $"({bc.YearComposed})" : "")</div>
+                <div class="bach-title">
+                    @bc.Bwv — @bc.Title
+                    @if (!string.IsNullOrEmpty(bc.TitleEnglish)) { <text> ("@bc.TitleEnglish")</text> }
+                    @(bc.YearComposed > 0 ? $" ({bc.YearComposed})" : "")
+                </div>
+                @if (!string.IsNullOrEmpty(bc.SundayOccasion)) { <div class="bach-meta">@bc.SundayOccasion</div> }
                 @if (!string.IsNullOrEmpty(bc.Scoring)) { <div class="bach-meta">@bc.Scoring</div> }
                 @if (!string.IsNullOrEmpty(bc.Notes)) { <p class="bach-notes">@bc.Notes</p> }
             </div>
@@ -53,7 +64,7 @@
     <div class="infobox-header">@t.TuneName</div>
     @if (!string.IsNullOrEmpty(t.Meter))
     {
-        <div class="infobox-row"><span class="ib-label">Meter</span><span class="ib-value">@t.Meter</span></div>
+        <div class="infobox-row"><span class="ib-label">Meter</span><span class="ib-value"><a href="/hymns?meter=@Uri.EscapeDataString(t.Meter)" class="xref">@t.Meter</a></span></div>
     }
     @if (!string.IsNullOrEmpty(t.StandardKey))
     {
@@ -75,5 +86,17 @@
         <span class="ib-label">Texts</span>
         <span class="ib-value">@t.LinkedTexts.Count associated text(s)</span>
     </div>
+    @if (t.HymnalNumbers.Count > 0)
+    {
+        <div class="infobox-row">
+            <span class="ib-label">In Hymnals</span>
+            <span class="ib-value">
+                @foreach (var hn in t.HymnalNumbers)
+                {
+                    <div>@hn.Name @hn.Number</div>
+                }
+            </span>
+        </div>
+    }
 </aside>
 </div>

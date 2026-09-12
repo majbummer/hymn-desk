@@ -1,0 +1,52 @@
+@page "/service-builder/{id:int}/print"
+@model LutheranMusicLibrary.Web.Pages.ServiceBuilder.PrintModel
+@{
+    Layout = null;
+    var p = Model.Plan!;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Order of Service@(string.IsNullOrEmpty(p.Note) ? "" : " — " + p.Note)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Lora', Georgia, serif; max-width: 640px; margin: 48px auto; padding: 0 24px; color: #2B2420; }
+        h1 { font-family: 'Cormorant Garamond', serif; font-size: 34px; text-align: center; margin-bottom: 4px; }
+        .print-date { text-align: center; color: #7A6E62; font-style: italic; margin-bottom: 40px; }
+        h2 { font-family: 'Cormorant Garamond', serif; font-size: 19px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #C9BCA0; padding-bottom: 6px; margin: 28px 0 10px; }
+        .item { padding: 4px 0; font-size: 16px; }
+        .item-author { color: #7A6E62; font-size: 13.5px; }
+        .empty { color: #7A6E62; font-style: italic; font-size: 14px; }
+        .print-btn { display: block; margin: 0 auto 32px; padding: 8px 20px; }
+        @@media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖶 Print</button>
+    <h1>@(string.IsNullOrEmpty(p.Note) ? "Order of Service" : p.Note)</h1>
+    @if (!string.IsNullOrEmpty(p.PlanDate))
+    {
+        <p class="print-date">@p.PlanDate</p>
+    }
+
+    @foreach (var slot in DatabaseService.ServiceSlots)
+    {
+        var items = p.ItemsBySlot.ContainsKey(slot) ? p.ItemsBySlot[slot] : new List<ServicePlanItem>();
+        @if (items.Count > 0)
+        {
+            <h2>@slot</h2>
+            @foreach (var item in items)
+            {
+                <div class="item">
+                    @item.Hymn.Title
+                    @if (!string.IsNullOrEmpty(item.Hymn.Author))
+                    {
+                        <span class="item-author"> — @item.Hymn.Author</span>
+                    }
+                </div>
+            }
+        }
+    }
+</body>
+</html>

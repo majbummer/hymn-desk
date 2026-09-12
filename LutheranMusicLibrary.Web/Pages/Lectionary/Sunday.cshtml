@@ -1,0 +1,84 @@
+@page "/lectionary/{year}/{id:int}"
+@model LutheranMusicLibrary.Web.Pages.Lectionary.SundayModel
+@{ ViewData["Title"] = Model.Detail == null ? "Lectionary Planner" : $"{Model.Detail.SundayName} — Year {Model.Detail.YearCycle}"; }
+
+@{
+    var matchLabels = new Dictionary<string, string>
+    {
+        ["first"] = "First Reading",
+        ["psalm"] = "Psalm",
+        ["second"] = "Second Reading",
+        ["gospel"] = "Gospel",
+    };
+}
+
+@if (Model.Detail != null)
+{
+    var d = Model.Detail;
+    <div class="page-header" style="border-left: 6px solid @LiturgicalCalendar.AccentHex(d.Season == "Season after Pentecost" ? "Time after Pentecost" : d.Season); padding-left: 20px;">
+        <h1>@d.SundayName</h1>
+        <p class="page-subtitle">
+            Year @d.YearCycle · @d.Season · liturgical color: @d.Color ·
+            <a href="/lectionary?year=@d.YearCycle">All Sundays in Year @d.YearCycle</a>
+        </p>
+    </div>
+
+    <div class="lectionary-readings">
+        @if (!string.IsNullOrEmpty(d.FirstReading))
+        {
+            <div class="lectionary-reading">
+                <span class="reading-label">First Reading</span>
+                <span class="reading-ref">@d.FirstReading</span>
+                @if (!string.IsNullOrEmpty(d.FirstReadingSummary)) { <p class="reading-summary">@d.FirstReadingSummary</p> }
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(d.Psalm))
+        {
+            <div class="lectionary-reading">
+                <span class="reading-label">Psalm</span>
+                <span class="reading-ref">@d.Psalm</span>
+                @if (!string.IsNullOrEmpty(d.PsalmSummary)) { <p class="reading-summary">@d.PsalmSummary</p> }
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(d.SecondReading))
+        {
+            <div class="lectionary-reading">
+                <span class="reading-label">Second Reading</span>
+                <span class="reading-ref">@d.SecondReading</span>
+                @if (!string.IsNullOrEmpty(d.SecondReadingSummary)) { <p class="reading-summary">@d.SecondReadingSummary</p> }
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(d.Gospel))
+        {
+            <div class="lectionary-reading">
+                <span class="reading-label">Gospel</span>
+                <span class="reading-ref">@d.Gospel</span>
+                @if (!string.IsNullOrEmpty(d.GospelSummary)) { <p class="reading-summary">@d.GospelSummary</p> }
+            </div>
+        }
+    </div>
+
+    @foreach (var matchType in new[] { "first", "psalm", "second", "gospel" })
+    {
+        @if (d.HymnsByMatchType.ContainsKey(matchType))
+        {
+            <h2 class="lectionary-hymns-heading">Hymns connected to the @matchLabels[matchType].ToLower()</h2>
+            <div class="catalog-grid">
+                @foreach (var hymn in d.HymnsByMatchType[matchType])
+                {
+                    <a href="/hymns/@hymn.Slug" class="catalog-card">
+                        <div class="card-title">@hymn.Title</div>
+                        @if (!string.IsNullOrEmpty(hymn.FirstLine))
+                        {
+                            <div class="card-subtitle">@hymn.FirstLine</div>
+                        }
+                        <div class="card-meta">
+                            @if (!string.IsNullOrEmpty(hymn.Author)) { <span>@hymn.Author</span> }
+                            @if (hymn.Year > 0) { <span class="meta-sep">·</span><span>@hymn.Year</span> }
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    }
+}

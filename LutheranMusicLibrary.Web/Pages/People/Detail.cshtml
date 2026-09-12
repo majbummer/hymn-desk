@@ -13,8 +13,13 @@
         <h1 class="entry-title">@p.Name</h1>
         @if (!string.IsNullOrEmpty(p.Dates))
         {
-            <p class="entry-original">@p.Dates@(!string.IsNullOrEmpty(p.Country) ? " · " + p.Country : "")</p>
+            <p class="entry-original">@p.Dates@(!string.IsNullOrEmpty(p.Country) ? " · " + p.Country : "")@(!string.IsNullOrEmpty(p.Era) ? " · " + p.Era : "")</p>
         }
+        <div style="margin-top:10px;">
+            @if (p.Roles.Contains("author")) { <span class="badge badge-author">Author</span> }
+            @if (p.Roles.Contains("composer")) { <span class="badge badge-composer">Composer</span> }
+            @if (p.Roles.Contains("translator")) { <span class="badge badge-translator">Translator</span> }
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(p.Biography))
@@ -36,6 +41,31 @@
             }
         </ul>
     }
+
+    @if (p.TunesComposed.Count > 0)
+    {
+        <h2>Tunes Composed (@p.TunesComposed.Count)</h2>
+        <ul class="hymnal-list">
+            @foreach (var tune in p.TunesComposed)
+            {
+                <li><a href="/tunes/@tune.Slug" class="xref">@tune.TuneName</a></li>
+            }
+        </ul>
+    }
+
+    @if (p.Translations.Count > 0)
+    {
+        <h2>Translations (@p.Translations.Count)</h2>
+        <ul class="hymnal-list">
+            @foreach (var text in p.Translations)
+            {
+                <li>
+                    <a href="/hymns/@text.Slug" class="xref">@text.Title</a>
+                    @if (text.Year > 0) { <span class="meta-year"> (@text.Year)</span> }
+                </li>
+            }
+        </ul>
+    }
 </article>
 
 <aside class="wiki-infobox">
@@ -43,6 +73,10 @@
     @if (!string.IsNullOrEmpty(p.Dates))
     {
         <div class="infobox-row"><span class="ib-label">Dates</span><span class="ib-value">@p.Dates</span></div>
+    }
+    @if (!string.IsNullOrEmpty(p.Era))
+    {
+        <div class="infobox-row"><span class="ib-label">Era</span><span class="ib-value">@p.Era</span></div>
     }
     @if (!string.IsNullOrEmpty(p.BirthPlace))
     {
@@ -58,7 +92,9 @@
     }
     <div class="infobox-row">
         <span class="ib-label">Works</span>
-        <span class="ib-value">@p.TextsAuthored.Count hymn text(s)</span>
+        <span class="ib-value">
+            @p.TextsAuthored.Count text(s)@(p.TunesComposed.Count > 0 ? $", {p.TunesComposed.Count} tune(s)" : "")@(p.Translations.Count > 0 ? $", {p.Translations.Count} translation(s)" : "")
+        </span>
     </div>
 </aside>
 </div>

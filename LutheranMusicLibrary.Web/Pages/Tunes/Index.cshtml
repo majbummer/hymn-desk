@@ -1,35 +1,70 @@
 @page "/tunes"
 @model LutheranMusicLibrary.Web.Pages.Tunes.IndexModel
-@{ ViewData["Title"] = "Hymn Tunes"; }
+@{
+    ViewData["Title"] = "Hymn Tunes";
+    var baseQuery = $"/tunes?q={Uri.EscapeDataString(Model.Query)}&sort={Uri.EscapeDataString(Model.Sort)}";
+    string SortLink(string key, string label)
+    {
+        var isCurrent = Model.Sort == key || (key == "" && string.IsNullOrEmpty(Model.Sort));
+        var arrow = isCurrent ? " ▾" : "";
+        return $"<a href=\"/tunes?q={Uri.EscapeDataString(Model.Query)}&sort={key}\" class=\"sortable-th{(isCurrent ? " sort-active" : "")}\">{label}{arrow}</a>";
+    }
+}
 
 <div class="page-header">
     <h1>Hymn Tunes</h1>
-    <p class="page-subtitle">@Model.Tunes.Count.ToString("N0") tunes in the catalog</p>
+    <p class="page-subtitle">
+        @Model.Result.TotalCount.ToString("N0") tunes in the catalog
+        @if (Model.Result.TotalPages > 1)
+        {
+            <text> · page @Model.Result.Page of @Model.Result.TotalPages</text>
+        }
+    </p>
 </div>
 
 <div class="filter-bar">
     <form method="get" class="filter-form">
         <input type="search" name="q" value="@Model.Query" placeholder="Search tune names, meters, origins…" class="filter-input" />
+        @if (!string.IsNullOrEmpty(Model.Sort))
+        {
+            <input type="hidden" name="sort" value="@Model.Sort" />
+        }
         <button type="submit" class="filter-btn">Search</button>
-        @if (!string.IsNullOrEmpty(Model.Query)) { <a href="/tunes" class="filter-clear">Clear</a> }
+        @if (!string.IsNullOrEmpty(Model.Query) || !string.IsNullOrEmpty(Model.Sort)) { <a href="/tunes" class="filter-clear">Clear</a> }
     </form>
 </div>
 
-<table class="catalog-table">
-    <thead>
-        <tr><th>Tune Name</th><th>Meter</th><th>Key</th><th>Origin</th><th>Tradition</th><th>Texts</th></tr>
-    </thead>
-    <tbody>
-        @foreach (var t in Model.Tunes)
-        {
+@if (Model.Result.Items.Count == 0)
+{
+    <p class="empty-state">No tunes match that search. Try a different word, or <a href="/tunes">clear the search</a>.</p>
+}
+else
+{
+    <table class="catalog-table">
+        <thead>
             <tr>
-                <td><a href="/tunes/@t.Slug" class="xref">@t.TuneName</a></td>
-                <td class="td-meter">@t.Meter</td>
-                <td>@t.StandardKey</td>
-                <td>@t.Origin</td>
-                <td>@t.Tradition</td>
-                <td class="td-count">@(t.TextCount > 0 ? t.TextCount.ToString() : "")</td>
+                <th>@Html.Raw(SortLink("", "Tune Name"))</th>
+                <th>@Html.Raw(SortLink("meter", "Meter"))</th>
+                <th>@Html.Raw(SortLink("key", "Key"))</th>
+                <th>@Html.Raw(SortLink("origin", "Origin"))</th>
+                <th>@Html.Raw(SortLink("tradition", "Tradition"))</th>
+                <th>@Html.Raw(SortLink("count", "Texts"))</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Result.Items)
+            {
+                <tr>
+                    <td><a href="/tunes/@t.Slug" class="xref">@t.TuneName</a></td>
+                    <td class="td-meter">@t.Meter</td>
+                    <td>@t.StandardKey</td>
+                    <td>@t.Origin</td>
+                    <td>@t.Tradition</td>
+                    <td class="td-count">@(t.TextCount > 0 ? t.TextCount.ToString() : "")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<partial name="_Pagination" model="@(new PaginationInfo { Page = Model.Result.Page, TotalPages = Model.Result.TotalPages, BaseQuery = baseQuery })" />

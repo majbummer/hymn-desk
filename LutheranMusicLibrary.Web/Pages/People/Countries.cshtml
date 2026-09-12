@@ -1,0 +1,25 @@
+@page "/people/countries"
+@model LutheranMusicLibrary.Web.Pages.People.CountriesModel
+@{ ViewData["Title"] = "People by Country"; }
+
+<div class="page-header">
+    <h1>People by Country</h1>
+    <p class="page-subtitle">
+        Authors, composers, and translators grouped by where they were born or worked.
+        <a href="/people">← Back to People</a>
+    </p>
+</div>
+
+@foreach (var continent in Model.Countries.Select(c => c.Continent).Distinct())
+{
+    <h2 class="glossary-category">@continent</h2>
+    <div class="country-grid">
+        @foreach (var c in Model.Countries.Where(x => x.Continent == continent))
+        {
+            <a href="/people?q=@Uri.EscapeDataString(c.Country)" class="country-link">
+                <span class="country-name">@c.Country</span>
+                <span class="country-count">@c.Count</span>
+            </a>
+        }
+    </div>
+}

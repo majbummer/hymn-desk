@@ -1,0 +1,44 @@
+@model PaginationInfo
+@{
+    int windowStart = Math.Max(1, Model.Page - 2);
+    int windowEnd = Math.Min(Model.TotalPages, Model.Page + 2);
+}
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="pagination">
+        @if (Model.Page > 1)
+        {
+            <a href="@Model.BaseQuery&page=@(Model.Page - 1)" class="page-link page-prev">← Previous</a>
+        }
+
+        @if (windowStart > 1)
+        {
+            <a href="@Model.BaseQuery&page=1" class="page-link">1</a>
+            @if (windowStart > 2) { <span class="page-ellipsis">…</span> }
+        }
+
+        @for (int p = windowStart; p <= windowEnd; p++)
+        {
+            @if (p == Model.Page)
+            {
+                <span class="page-link page-current">@p</span>
+            }
+            else
+            {
+                <a href="@Model.BaseQuery&page=@p" class="page-link">@p</a>
+            }
+        }
+
+        @if (windowEnd < Model.TotalPages)
+        {
+            @if (windowEnd < Model.TotalPages - 1) { <span class="page-ellipsis">…</span> }
+            <a href="@Model.BaseQuery&page=@Model.TotalPages" class="page-link">@Model.TotalPages</a>
+        }
+
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a href="@Model.BaseQuery&page=@(Model.Page + 1)" class="page-link page-next">Next →</a>
+        }
+    </nav>
+}

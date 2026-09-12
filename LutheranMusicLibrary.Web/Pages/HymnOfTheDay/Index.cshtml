@@ -1,0 +1,44 @@
+@page "/hymn-of-the-day"
+@model LutheranMusicLibrary.Web.Pages.HymnOfTheDay.IndexModel
+@{ ViewData["Title"] = "Hymn of the Day Calendar"; }
+
+<div class="page-header">
+    <h1>Hymn of the Day Calendar</h1>
+    <p class="page-subtitle">
+        @Model.Entries.Count.ToString("N0") assignments · The designated Hymn of the Day for Sundays and festivals,
+        as appointed in current hymnals. Coverage is partial — this grows as more assignments are added.
+    </p>
+</div>
+
+@foreach (var season in Model.Entries.Select(e => e.Season).Distinct())
+{
+    <h2 class="lectionary-season-heading" style="border-left-color: @LiturgicalCalendar.AccentHex(season == "Season after Pentecost" ? "Time after Pentecost" : season)">
+        @season
+    </h2>
+    <div class="hotd-list">
+        @foreach (var sunday in Model.Entries.Where(e => e.Season == season).Select(e => e.SundayName).Distinct())
+        {
+            <div class="hotd-sunday">
+                <h3 class="hotd-sunday-name">@sunday</h3>
+                @foreach (var entry in Model.Entries.Where(e => e.Season == season && e.SundayName == sunday))
+                {
+                    <div class="hotd-entry">
+                        <span class="hotd-hymnal">@entry.Hymnal.ToUpper() @entry.HymnNumber</span>
+                        @if (!string.IsNullOrEmpty(entry.TextSlug))
+                        {
+                            <a href="/hymns/@entry.TextSlug" class="xref">@entry.HymnTitle</a>
+                        }
+                        else
+                        {
+                            <span>@entry.HymnTitle</span>
+                        }
+                        @if (!string.IsNullOrEmpty(entry.Notes))
+                        {
+                            <span class="hotd-notes">@entry.Notes</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
