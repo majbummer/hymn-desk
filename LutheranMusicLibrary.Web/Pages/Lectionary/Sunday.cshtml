@@ -10,6 +10,22 @@
         ["second"] = "Second Reading",
         ["gospel"] = "Gospel",
     };
+    var sourceLabels = new Dictionary<string, string>
+    {
+        ["LCMS"] = "LCMS — Proclaim",
+        ["ELCA"] = "ELCA — Sundays and Seasons",
+    };
+    var slotLabels = new Dictionary<string, string>
+    {
+        ["hymn_of_the_day"] = "Hymn of the Day",
+        ["alternate_hymn_of_the_day"] = "Alternate Hymn of the Day",
+        ["gathering"] = "Gathering",
+        ["communion"] = "Communion",
+        ["sending"] = "Sending",
+        ["additional"] = "Additional Hymns",
+        ["hymn_suggestion"] = "Hymn Suggestions",
+    };
+    var slotOrder = new[] { "hymn_of_the_day", "alternate_hymn_of_the_day", "gathering", "communion", "sending", "additional", "hymn_suggestion" };
 }
 
 @if (Model.Detail != null)
@@ -79,6 +95,43 @@
                     </a>
                 }
             </div>
+        }
+    }
+
+    @foreach (var source in new[] { "LCMS", "ELCA" })
+    {
+        @if (d.SuggestionsBySourceAndSlot.ContainsKey(source))
+        {
+            <h2 class="lectionary-hymns-heading">@(sourceLabels.ContainsKey(source) ? sourceLabels[source] : source)</h2>
+            @foreach (var slot in slotOrder)
+            {
+                @if (d.SuggestionsBySourceAndSlot[source].ContainsKey(slot))
+                {
+                    <h3 class="lectionary-slot-heading">@(slotLabels.ContainsKey(slot) ? slotLabels[slot] : slot)</h3>
+                    <div class="catalog-grid">
+                        @foreach (var hymn in d.SuggestionsBySourceAndSlot[source][slot])
+                        {
+                            <a href="/hymns/@hymn.Slug" class="catalog-card" title="@hymn.MatchedRef">
+                                <div class="card-title">
+                                    @hymn.Title
+                                    @if (hymn.MatchType == "probable")
+                                    {
+                                        <span class="badge badge-review">needs review</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(hymn.FirstLine))
+                                {
+                                    <div class="card-subtitle">@hymn.FirstLine</div>
+                                }
+                                <div class="card-meta">
+                                    @if (!string.IsNullOrEmpty(hymn.Author)) { <span>@hymn.Author</span> }
+                                    @if (hymn.Year > 0) { <span class="meta-sep">·</span><span>@hymn.Year</span> }
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            }
         }
     }
 }

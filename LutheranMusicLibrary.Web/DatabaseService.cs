@@ -975,24 +975,40 @@ public class DatabaseService
 
         var hc = conn.CreateCommand();
         hc.CommandText = @"
-            SELECT lhs.match_type, lhs.matched_ref, t.id, t.title, t.author, t.year, t.meter, t.first_line
+            SELECT lhs.match_type, lhs.matched_ref, lhs.source, lhs.slot,
+                   t.id, t.title, t.author, t.year, t.meter, t.first_line
             FROM lectionary_hymn_suggestions lhs
             JOIN texts t ON lhs.text_id = t.id
             WHERE lhs.lectionary_id = $id
-            ORDER BY lhs.match_type, t.title";
+            ORDER BY lhs.source, lhs.slot, lhs.match_type, t.title";
         hc.Parameters.AddWithValue("$id", id);
         using var hr = hc.ExecuteReader();
         while (hr.Read())
         {
             var matchType = Safe(hr, "match_type");
+            var source = Safe(hr, "source");
+            var slot = Safe(hr, "slot");
             var hymn = new HymnSummary
             {
-                Id = hr.GetInt32(2), Title = Safe(hr, "title"), Author = Safe(hr, "author"),
+                Id = hr.GetInt32(4), Title = Safe(hr, "title"), Author = Safe(hr, "author"),
                 Year = SafeInt(hr, "year"), Meter = Safe(hr, "meter"), FirstLine = Safe(hr, "first_line"),
                 Slug = Slugify(Safe(hr, "title")),
+                Source = source, Slot = slot, MatchType = matchType, MatchedRef = Safe(hr, "matched_ref"),
             };
-            if (!d.HymnsByMatchType.ContainsKey(matchType)) d.HymnsByMatchType[matchType] = new List<HymnSummary>();
-            d.HymnsByMatchType[matchType].Add(hymn);
+            if (source == "auto")
+            {
+                if (!d.HymnsByMatchType.ContainsKey(matchType)) d.HymnsByMatchType[matchType] = new List<HymnSummary>();
+                d.HymnsByMatchType[matchType].Add(hymn);
+            }
+            else
+            {
+                var slotKey = string.IsNullOrEmpty(slot) ? "hymn_suggestion" : slot;
+                if (!d.SuggestionsBySourceAndSlot.ContainsKey(source))
+                    d.SuggestionsBySourceAndSlot[source] = new Dictionary<string, List<HymnSummary>>();
+                if (!d.SuggestionsBySourceAndSlot[source].ContainsKey(slotKey))
+                    d.SuggestionsBySourceAndSlot[source][slotKey] = new List<HymnSummary>();
+                d.SuggestionsBySourceAndSlot[source][slotKey].Add(hymn);
+            }
         }
         return d;
     }
@@ -1423,6 +1439,10 @@ public class HymnSummary
     public string HymnalRefs { get; set; } = "";
     public string Slug { get; set; } = "";
     public string Dates => Year > 0 ? Year.ToString() : "";
+    public string Source { get; set; } = "";
+    public string Slot { get; set; } = "";
+    public string MatchType { get; set; } = "";
+    public string MatchedRef { get; set; } = "";
 }
 
 public class HymnDetail
@@ -1659,6 +1679,7 @@ public class LectionaryDetail
     public string Gospel { get; set; } = "";
     public string GospelSummary { get; set; } = "";
     public Dictionary<string, List<HymnSummary>> HymnsByMatchType { get; set; } = new();
+    public Dictionary<string, Dictionary<string, List<HymnSummary>>> SuggestionsBySourceAndSlot { get; set; } = new();
 }
 
 public class HymnOfTheDayEntry

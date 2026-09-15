@@ -503,10 +503,12 @@ p { margin-bottom: 1rem; max-width: 68ch; }
 .badge-pd { border-color: #4B6B3A; color: #33471F; background: #EBF2E6; }
 .badge-author { border-color: var(--oxblood); color: var(--oxblood-dark); background: #F5E9E4; margin-right: 4px; }
 .badge-composer { border-color: var(--gold); color: #6B5218; background: #FBF3DE; margin-right: 4px; }
+.badge-review { border-color: #A0761A; color: #6B5218; background: #FBF3DE; margin-left: 8px; }
 
 [data-theme="dark"] .badge-pd { color: #A9D19B; background: #22301E; }
 [data-theme="dark"] .badge-author { color: var(--oxblood-dark); background: #3A2429; }
 [data-theme="dark"] .badge-composer { color: var(--gold-light); background: #3A331E; }
+[data-theme="dark"] .badge-review { color: var(--gold-light); background: #3A331E; }
 
 /* ── HOMEPAGE: INTRO ────────────────────────────────────────────────────── */
 .homepage-intro {
@@ -893,6 +895,7 @@ p { margin-bottom: 1rem; max-width: 68ch; }
 .reading-summary { margin-top: 8px; font-size: 15px; color: var(--ink-soft); max-width: none; }
 
 .lectionary-hymns-heading { font-size: 22px; margin: 40px 20px 16px; }
+.lectionary-slot-heading { font-size: 15px; font-style: italic; color: var(--ink-soft); margin: 20px 20px 8px; font-weight: normal; }
 
 /* ── LAW/GOSPEL INDEX ──────────────────────────────────────────────────── */
 .lawgospel-group {
