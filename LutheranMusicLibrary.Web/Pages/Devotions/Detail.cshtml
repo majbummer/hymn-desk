@@ -1,0 +1,41 @@
+@page "/devotions/{slug}"
+@model LutheranMusicLibrary.Web.Pages.Devotions.DetailModel
+@{
+    var d = Model.Devotion;
+    ViewData["Title"] = d?.Title ?? "Not Found";
+    if (d == null) { <p>Devotion not found.</p> return; }
+}
+
+<style>
+    .devotion-body { max-width: 42rem; line-height: 1.75; font-size: 1.05rem; }
+    .devotion-body p { white-space: pre-line; margin: 0 0 1.1rem; }
+</style>
+
+<div class="page-header">
+    <div class="breadcrumb no-print"><a href="/devotions">Devotions</a> /</div>
+    <h1>@d.Title</h1>
+    @if (!string.IsNullOrEmpty(d.Scripture))
+    {
+        <p class="page-subtitle">
+            <a href="https://www.biblegateway.com/passage/?search=@Uri.EscapeDataString(d.Scripture.Replace('–', '-').Replace('—', '-'))" target="_blank" rel="noopener" class="xref">@d.Scripture</a>
+        </p>
+    }
+</div>
+
+<div class="devotion-body">
+    @foreach (var para in d.Body.Replace("\r\n", "\n").Split("\n\n", StringSplitOptions.RemoveEmptyEntries))
+    {
+        <p>@para.Trim()</p>
+    }
+</div>
+
+@if (d.Hymns.Count > 0)
+{
+    <h2>@(d.Hymns.Count > 1 ? "Related hymns" : "Related hymn")</h2>
+    <ul class="plain-list">
+        @foreach (var h in d.Hymns)
+        {
+            <li><a href="/hymns/@h.Slug" class="xref">@h.Title</a></li>
+        }
+    </ul>
+}

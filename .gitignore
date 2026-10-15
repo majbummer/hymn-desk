@@ -4,3 +4,5 @@ obj/
 *.db-shm
 *.db-wal
 .vs/
+
+admin-backups/

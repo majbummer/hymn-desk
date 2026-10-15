@@ -1,0 +1,79 @@
+@page "/admin/{table}"
+@model LutheranMusicLibrary.Web.Pages.Admin.TableModel
+@{
+    ViewData["Title"] = Model.TableName;
+    var fq = Model.FilterQuery();
+    var tableUrl = "/admin/" + Uri.EscapeDataString(Model.TableName);
+    var addUrl = tableUrl + "/edit" + (fq.Length > 0 ? "?" + fq.TrimStart('&') : "");
+    string PageUrl(int p) => tableUrl + "?q=" + Uri.EscapeDataString(Model.Query) + fq + "&page=" + p;
+}
+
+<p class="crumbs"><a href="/admin">All tables</a> › @Model.TableName</p>
+<h1>@Model.TableName</h1>
+
+@if (Model.Error != null)
+{
+    <div class="err">@Model.Error</div>
+}
+
+@if (Model.Filters.Count > 0)
+{
+    <div class="note">
+        Showing only rows where
+        @(string.Join(" and ", Model.Filters.Select(f => $"{f.Key} = {f.Value}"))).
+        <a href="@tableUrl">Show all rows</a>
+    </div>
+}
+
+<form method="get" class="toolbar">
+    <input type="search" name="q" value="@Model.Query" placeholder="Search every column…" />
+    @foreach (var f in Model.Filters)
+    {
+        <input type="hidden" name="@("f_" + f.Key)" value="@f.Value" />
+    }
+    <button type="submit" class="btn secondary">Search</button>
+    <a class="btn" href="@addUrl">+ Add row</a>
+    <span class="muted">@Model.Total.ToString("N0") rows, newest first</span>
+</form>
+
+<div class="scroll">
+<table class="grid">
+    <thead>
+        <tr>
+            <th></th>
+            @foreach (var c in Model.Cols)
+            {
+                <th>@c.Name</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var row in Model.Rows)
+    {
+        <tr>
+            <td><a href="@(tableUrl + "/edit/" + row.RowId + (fq.Length > 0 ? "?" + fq.TrimStart('&') : ""))">Edit</a></td>
+            @foreach (var v in row.Values)
+            {
+                if (v == null)
+                {
+                    <td><span class="null">NULL</span></td>
+                }
+                else
+                {
+                    <td title="@v">@(v.Length > 80 ? v.Substring(0, 80) + "…" : v)</td>
+                }
+            }
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="pager">
+        @if (Model.PageNumber > 1) { <a href="@PageUrl(Model.PageNumber - 1)">← Newer</a> }
+        <span class="muted">Page @Model.PageNumber of @Model.TotalPages</span>
+        @if (Model.PageNumber < Model.TotalPages) { <a href="@PageUrl(Model.PageNumber + 1)">Older →</a> }
+    </div>
+}

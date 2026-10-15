@@ -1,0 +1,40 @@
+@page "/admin"
+@model LutheranMusicLibrary.Web.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Tables";
+}
+
+<h1>Data entry</h1>
+<p class="muted">Add and edit rows in your local database through forms. New hymns, tunes and people show up on the site automatically — their pages are built from the data.</p>
+
+<div class="note">
+    Changes here go to the <strong>local</strong> database file only. When you're ready to publish, upload it the usual way:
+    <code>railway volume files upload ./lutheran_music_planner.db /data/lutheran_music_planner.db --overwrite</code>, then redeploy from the Railway dashboard.
+    A safety copy of the database is saved to the <code>admin-backups</code> folder the first time you save, add or delete anything in each run of the app (the newest five are kept).
+</div>
+
+@if (Model.QuickAdds.Count > 0)
+{
+    <div class="quick">
+        @foreach (var q in Model.QuickAdds)
+        {
+            <a class="btn" href="@("/admin/" + q.Table + "/edit")">+ @q.Label</a>
+        }
+    </div>
+}
+
+<h2>All tables</h2>
+<div class="scroll">
+<table class="grid">
+    <thead><tr><th>Table</th><th>Rows</th></tr></thead>
+    <tbody>
+    @foreach (var t in Model.Tables)
+    {
+        <tr>
+            <td><a href="@("/admin/" + Uri.EscapeDataString(t.Name))">@t.Name</a></td>
+            <td>@(t.Rows >= 0 ? t.Rows.ToString("N0") : "—")</td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>

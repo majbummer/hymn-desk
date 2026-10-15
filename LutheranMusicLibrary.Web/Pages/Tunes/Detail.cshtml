@@ -4,6 +4,8 @@
     ViewData["Title"] = Model.Tune?.TuneName ?? "Not Found";
     var t = Model.Tune;
     if (t == null) { <p>Tune not found.</p> return; }
+    ViewData["FullTitle"] = Seo.TuneTitle(t);
+    ViewData["Description"] = Seo.TuneDescription(t);
 }
 
 <div class="wiki-layout">

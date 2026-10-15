@@ -9,8 +9,10 @@ public class SitemapModel : PageModel
 
     public IActionResult OnGet()
     {
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        var baseUrl = Seo.BaseUrl;
         var urls = _db.GetSitemapUrls();
+        urls.Add("/devotions");
+        urls.AddRange(_db.GetDevotionSitemapUrls());
 
         var sb = new StringBuilder();
         sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");

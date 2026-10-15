@@ -1,12 +1,13 @@
 using Microsoft.Data.Sqlite;
 
-public class DatabaseService
+public partial class DatabaseService
 {
     private readonly string _dbPath;
 
     public DatabaseService(string dbPath)
     {
         _dbPath = dbPath;
+        EnsureDevotionTables();
     }
 
     private SqliteConnection GetConnection()

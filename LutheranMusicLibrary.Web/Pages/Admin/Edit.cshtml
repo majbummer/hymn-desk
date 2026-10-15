@@ -1,0 +1,124 @@
+@page "/admin/{table}/edit/{id:long?}"
+@model LutheranMusicLibrary.Web.Pages.Admin.EditModel
+@{
+    var isNew = Model.RowId == null;
+    ViewData["Title"] = (isNew ? "Add row — " : "Edit row — ") + Model.TableName;
+    var tableUrl = "/admin/" + Uri.EscapeDataString(Model.TableName);
+    var textareaHints = new[] { "history", "analysis", "note", "content", "hook", "description", "summary", "bio", "comment", "body" };
+    bool IsLong(string name) => textareaHints.Any(h => name.Contains(h, StringComparison.OrdinalIgnoreCase));
+}
+
+<p class="crumbs"><a href="/admin">All tables</a> › <a href="@tableUrl">@Model.TableName</a> › @(isNew ? "new row" : "row " + Model.RowId)</p>
+<h1>@(isNew ? "Add a row" : "Edit row") <span class="muted">in @Model.TableName</span></h1>
+
+@if (Model.Saved)
+{
+    <div class="ok">Saved.</div>
+}
+@if (Model.Error != null)
+{
+    <div class="err">Couldn't save: @Model.Error</div>
+}
+
+@if (Model.Related.Count > 0)
+{
+    <div class="related">
+        <h2>Related rows for this entry</h2>
+        <ul>
+            @foreach (var r in Model.Related)
+            {
+                <li>
+                    @r.Label —
+                    <a href="@("/admin/" + Uri.EscapeDataString(r.Table) + "?" + r.Query)">view</a> ·
+                    <a href="@("/admin/" + Uri.EscapeDataString(r.Table) + "/edit?" + r.Query)">+ add</a>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+<form method="post" class="form-card">
+    @foreach (var f in Model.Filters)
+    {
+        <input type="hidden" name="@("f_" + f.Key)" value="@f.Value" />
+    }
+
+    @foreach (var c in Model.Cols)
+    {
+        Model.Values.TryGetValue(c.Name, out var val);
+        var required = c.NotNull && c.Default == null && !c.IsPk;
+        var inputId = "col_" + c.Name;
+        <div class="field">
+            <label for="@inputId">@(c.Name + (required ? " *" : ""))</label>
+
+            @if (c.IsPk && !isNew)
+            {
+                <div class="readonly">@val</div>
+            }
+            else if (c.IsPk && c.IsInteger)
+            {
+                <div class="readonly">assigned automatically</div>
+            }
+            else if (c.Name == "hymnal_id" && Model.HymnalOptions.Count > 0)
+            {
+                <select id="@inputId" name="@inputId" required="@required">
+                    <option value="">— choose hymnal —</option>
+                    @foreach (var o in Model.HymnalOptions)
+                    {
+                        <option value="@o.Value" selected="@(o.Value == val)">@o.Label</option>
+                    }
+                </select>
+            }
+            else if (c.Name == "text_id" && Model.TextOptions.Count > 0)
+            {
+                <select id="@inputId" name="@inputId" required="@required">
+                    <option value="">@(required ? "— choose hymn text —" : "— none —")</option>
+                    @foreach (var o in Model.TextOptions)
+                    {
+                        <option value="@o.Value" selected="@(o.Value == val)">@o.Label</option>
+                    }
+                </select>
+            }
+            else if (IsLong(c.Name))
+            {
+                <textarea id="@inputId" name="@inputId" required="@required">@val</textarea>
+            }
+            else
+            {
+                <input type="text" id="@inputId" name="@inputId" value="@val" required="@required" inputmode="@(c.IsInteger ? "numeric" : "text")" />
+            }
+
+            @if (c.Name == "tune_id")
+            {
+                <div class="hint">Need the ID? <a href="/admin/tunes" target="_blank">look up tunes</a></div>
+            }
+            else if (c.Name == "text_id" && Model.TextOptions.Count == 0)
+            {
+                <div class="hint">Need the ID? <a href="/admin/texts" target="_blank">look up hymn texts</a></div>
+            }
+            else if (c.Name == "published" && Model.TableName == "devotions")
+            {
+                <div class="hint">1 = visible on the site, 0 = draft (hidden)</div>
+            }
+        </div>
+    }
+
+    <div class="actions">
+        <button class="btn" type="submit" name="next" value="stay">Save</button>
+        <button class="btn secondary" type="submit" name="next" value="list">Save &amp; back to list</button>
+        <button class="btn secondary" type="submit" name="next" value="another">Save &amp; add another</button>
+        <a class="btn secondary" href="@(tableUrl + (Model.FilterQuery().Length > 0 ? "?" + Model.FilterQuery() : ""))">Cancel</a>
+    </div>
+</form>
+
+@if (!isNew)
+{
+    <form method="post" asp-page-handler="Delete" asp-route-table="@Model.TableName" asp-route-id="@Model.RowId"
+          style="margin-top:18px" onsubmit="return confirm('Delete this row? A backup copy of the database is saved first.');">
+        @foreach (var f in Model.Filters)
+        {
+            <input type="hidden" name="@("f_" + f.Key)" value="@f.Value" />
+        }
+        <button class="btn danger" type="submit">Delete this row</button>
+    </form>
+}

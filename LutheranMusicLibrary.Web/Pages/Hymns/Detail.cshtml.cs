@@ -9,6 +9,7 @@ public class DetailModel : PageModel
     public HymnDetail? Hymn { get; set; }
     public List<ConfessionalSectionStub> ConfessionalConnections { get; set; } = new();
     public string? StanzaArc { get; set; }
+    public List<DevotionSummary> HymnDevotions { get; set; } = new();
 
     public DetailModel(DatabaseService db) => _db = db;
 
@@ -18,6 +19,7 @@ public class DetailModel : PageModel
         if (Hymn == null) return NotFound();
         ConfessionalConnections = _db.GetConfessionalSectionsForHymn(Hymn.Id);
         StanzaArc = _db.GetStanzaArcForHymn(Hymn.Id);
+        HymnDevotions = _db.GetDevotionsForHymn(Hymn.Id);
         return Page();
     }
 }

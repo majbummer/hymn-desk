@@ -19,7 +19,24 @@
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         })();
     </script>
-    <title>@ViewData["Title"] — Hymn Desk</title>
+    @{
+        var rawTitle = ViewData["Title"]?.ToString() ?? "";
+        var fullTitle = ViewData["FullTitle"]?.ToString()
+            ?? (string.IsNullOrEmpty(rawTitle) || rawTitle == "Hymn Desk"
+                ? "Hymn Desk – Lutheran Hymn Texts, Tunes & Hymnal Numbers"
+                : rawTitle + " | Hymn Desk");
+        var metaDesc = ViewData["Description"]?.ToString() ?? Seo.DefaultDescription;
+        var reqPath = Context.Request.Path.Value ?? "/";
+        var canonical = Seo.BaseUrl + (reqPath == "/" ? "/" : reqPath.TrimEnd('/'));
+    }
+    <title>@fullTitle</title>
+    <meta name="description" content="@metaDesc" />
+    <link rel="canonical" href="@canonical" />
+    <meta property="og:site_name" content="Hymn Desk" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@fullTitle" />
+    <meta property="og:description" content="@metaDesc" />
+    <meta property="og:url" content="@canonical" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
@@ -51,6 +68,7 @@
                     <a href="/bible">Bible Lookup</a>
                     <a href="/lectionary">Lectionary Planner</a>
                     <a href="/hymn-of-the-day">Hymn of the Day Calendar</a>
+                    <a href="/devotions">Devotions</a>
                     <a href="/bach-cantatas">Bach Cantatas</a>
                     <a href="/glossary">Glossary</a>
                     <a href="/confessions">Confessions &amp; Catechisms</a>

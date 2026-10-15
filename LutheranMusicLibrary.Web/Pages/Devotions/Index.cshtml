@@ -1,0 +1,44 @@
+@page "/devotions"
+@model LutheranMusicLibrary.Web.Pages.Devotions.IndexModel
+@{
+    ViewData["Title"] = "Hymn Devotions";
+}
+
+<div class="page-header">
+    <h1>Hymn Devotions</h1>
+    <p class="page-subtitle">Short devotions drawn from the hymns of the church</p>
+</div>
+
+@if (Model.Items.Count == 0)
+{
+    <p>No devotions have been published yet. Please check back soon.</p>
+}
+else
+{
+    <ul class="plain-list">
+        @foreach (var d in Model.Items)
+        {
+            <li style="margin-bottom: 1.4rem;">
+                <a href="/devotions/@d.Slug" class="xref"><strong>@d.Title</strong></a>
+                @if (!string.IsNullOrEmpty(d.Scripture))
+                {
+                    <span class="entry-original"> — @d.Scripture</span>
+                }
+                @if (!string.IsNullOrEmpty(d.Excerpt))
+                {
+                    <div>@d.Excerpt</div>
+                }
+                @if (d.Hymns.Count > 0)
+                {
+                    <div class="entry-original">
+                        @(d.Hymns.Count > 1 ? "Hymns:" : "Hymn:")
+                        @for (int i = 0; i < d.Hymns.Count; i++)
+                        {
+                            <a href="/hymns/@d.Hymns[i].Slug" class="xref">@d.Hymns[i].Title</a>@(i < d.Hymns.Count - 1 ? ", " : "")
+                        }
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}

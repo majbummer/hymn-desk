@@ -4,6 +4,8 @@
     ViewData["Title"] = Model.Person?.Name ?? "Not Found";
     var p = Model.Person;
     if (p == null) { <p>Person not found.</p> return; }
+    ViewData["FullTitle"] = Seo.PersonTitle(p);
+    ViewData["Description"] = Seo.PersonDescription(p);
 }
 
 <div class="wiki-layout">
